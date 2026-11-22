@@ -3,14 +3,24 @@ TE.App = (function () {
   const pageTitle = () => document.getElementById('pageTitle');
   const sidebarNav = () => document.getElementById('sidebarNav');
 
-  const pageTitles = {
-    dashboard: 'Dashboard',
-    billing: 'New Sales Invoice',
-    invoices: 'Invoice History',
-    products: 'Product Master',
-    customers: 'Customer Master',
-    reports: 'Reports & MIS',
-    settings: 'Business Settings',
+  const pageTitleKeys = {
+    dashboard: 'dashboard',
+    billing: 'new_sales_invoice',
+    invoices: 'invoice_history',
+    products: 'product_master',
+    customers: 'customer_master',
+    reports: 'reports_mis',
+    settings: 'business_settings',
+  };
+
+  const sidebarKeys = {
+    dashboard: 'dashboard',
+    billing: 'sales_billing',
+    invoices: 'invoice_history',
+    products: 'products',
+    customers: 'customers',
+    reports: 'reports',
+    settings: 'settings',
   };
 
   let billingDraft = null;
@@ -31,13 +41,14 @@ TE.App = (function () {
     const container = pageContent();
     if (!container) return;
 
-    pageTitle().textContent = pageTitles[page] || 'TradeEase';
+    const t = TE.Lang.t;
+    pageTitle().textContent = t(pageTitleKeys[page] || 'app_name');
 
     sidebarNav().querySelectorAll('a').forEach(a => {
       a.classList.toggle('active', a.dataset.page === page);
     });
 
-    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">Loading...</div>';
+    container.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-muted)">${t('loading')}</div>`;
 
     try {
       switch (page) {
@@ -67,7 +78,7 @@ TE.App = (function () {
           await TE.Dashboard.render(container);
       }
     } catch (err) {
-      container.innerHTML = `<div class="empty-state"><p>Error loading page: ${err.message}</p></div>`;
+      container.innerHTML = `<div class="empty-state"><p>${t('error_loading')}: ${err.message}</p></div>`;
       console.error(err);
     }
   }
@@ -77,9 +88,42 @@ TE.App = (function () {
     renderPage(hash);
   }
 
+  function updateUILanguage() {
+    const t = TE.Lang.t;
+    const toggle = document.getElementById('langToggle');
+    if (toggle) toggle.textContent = TE.Lang.getLang() === 'hi' ? 'HI' : 'EN';
+
+    const btn = document.getElementById('newInvoiceBtnText');
+    if (btn) btn.textContent = t('new_invoice');
+
+    const brand = document.querySelector('.sidebar-brand');
+    if (brand) {
+      const svg = brand.querySelector('svg');
+      brand.textContent = '';
+      if (svg) brand.appendChild(svg);
+      brand.appendChild(document.createTextNode(' ' + t('app_name')));
+    }
+
+    sidebarNav().querySelectorAll('a').forEach(a => {
+      const page = a.dataset.page;
+      if (page && sidebarKeys[page]) {
+        const svg = a.querySelector('svg');
+        a.textContent = '';
+        if (svg) a.appendChild(svg);
+        a.appendChild(document.createTextNode('\n          ' + t(sidebarKeys[page]) + '\n        '));
+      }
+    });
+
+    const footer = document.querySelector('.sidebar-footer');
+    if (footer) footer.textContent = t('app_name') + ' v1.0';
+  }
+
   async function init() {
     await TE.Store.open();
     await TE.Store.seed();
+    await TE.Lang.init();
+
+    updateUILanguage();
 
     window.addEventListener('hashchange', handleRoute);
     handleRoute();
@@ -87,6 +131,13 @@ TE.App = (function () {
     document.getElementById('newInvoiceBtn')?.addEventListener('click', () => {
       TE.Billing.reset();
       navigate('billing');
+    });
+
+    document.getElementById('langToggle')?.addEventListener('click', async () => {
+      const next = TE.Lang.getLang() === 'en' ? 'hi' : 'en';
+      await TE.Lang.setLang(next);
+      updateUILanguage();
+      handleRoute();
     });
 
     document.getElementById('syncIndicator')?.addEventListener('click', () => navigate('settings'));

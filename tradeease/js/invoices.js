@@ -2,14 +2,15 @@ TE.Invoices = (function () {
   const { el, currency, dateStr, toast, modal, confirm } = TE.Utils;
 
   async function render(container) {
+    const t = TE.Lang.t;
     const invoices = await TE.Store.getAll('sales_header');
     invoices.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
 
     container.innerHTML = '';
 
     const header = el('div', { className: 'flex-between mb-16' }, [
-      el('h3', { className: 'section-title', style: { margin: 0 } }, `All Invoices (${invoices.length})`),
-      el('button', { className: 'btn btn-primary', onClick: () => TE.App.navigate('billing') }, '+ New Invoice'),
+      el('h3', { className: 'section-title', style: { margin: 0 } }, `${t('invoice_history')} (${invoices.length})`),
+      el('button', { className: 'btn btn-primary', onClick: () => TE.App.navigate('billing') }, '+ ' + t('new_invoice')),
     ]);
     container.appendChild(header);
 
@@ -17,12 +18,12 @@ TE.Invoices = (function () {
     const tableWrap = el('div', { className: 'card-body no-pad table-wrap' });
 
     if (invoices.length === 0) {
-      tableWrap.innerHTML = '<div class="empty-state"><p>No invoices yet. Create your first invoice!</p></div>';
+      tableWrap.innerHTML = `<div class="empty-state"><p>${t('no_invoices_yet')}</p></div>`;
     } else {
-      const t = el('table');
-      t.innerHTML = `<thead><tr>
-        <th>Invoice #</th><th>Date</th><th>Customer</th><th>Payment</th>
-        <th class="text-right">Amount</th><th>Status</th><th>Actions</th>
+      const tbl = el('table');
+      tbl.innerHTML = `<thead><tr>
+        <th>${t('invoice_number')}</th><th>${t('invoice_date')}</th><th>${t('customer')}</th><th>${t('payment_mode')}</th>
+        <th class="text-right">${t('amount')}</th><th>${t('status')}</th><th>${t('actions')}</th>
       </tr></thead>`;
       const tbody = el('tbody');
 
@@ -49,17 +50,17 @@ TE.Invoices = (function () {
         if (inv.status === 'posted') {
           btnRow.appendChild(el('button', { className: 'btn btn-ghost btn-sm', onClick: () => viewInvoice(inv) }, 'View'));
           btnRow.appendChild(el('button', { className: 'btn btn-ghost btn-sm', onClick: () => reprintInvoice(inv) }, 'PDF'));
-          btnRow.appendChild(el('button', { className: 'btn btn-ghost btn-sm text-danger', onClick: () => cancelInvoice(inv) }, 'Cancel'));
+          btnRow.appendChild(el('button', { className: 'btn btn-ghost btn-sm text-danger', onClick: () => cancelInvoice(inv) }, t('cancel')));
         } else if (inv.status === 'draft') {
-          btnRow.appendChild(el('button', { className: 'btn btn-ghost btn-sm', onClick: () => editDraft(inv) }, 'Edit'));
-          btnRow.appendChild(el('button', { className: 'btn btn-ghost btn-sm text-danger', onClick: () => deleteDraft(inv) }, 'Delete'));
+          btnRow.appendChild(el('button', { className: 'btn btn-ghost btn-sm', onClick: () => editDraft(inv) }, t('edit')));
+          btnRow.appendChild(el('button', { className: 'btn btn-ghost btn-sm text-danger', onClick: () => deleteDraft(inv) }, t('delete')));
         }
 
         actCell.appendChild(btnRow);
         tbody.appendChild(tr);
       }
-      t.appendChild(tbody);
-      tableWrap.appendChild(t);
+      tbl.appendChild(tbody);
+      tableWrap.appendChild(tbl);
     }
 
     card.appendChild(tableWrap);
@@ -67,6 +68,7 @@ TE.Invoices = (function () {
   }
 
   async function viewInvoice(inv) {
+    const t = TE.Lang.t;
     const details = await TE.Store.getByIndex('sales_details', 'invoice_number', inv.invoice_number);
     const content = el('div');
 
@@ -83,31 +85,31 @@ TE.Invoices = (function () {
 
     content.innerHTML = `
       <div class="form-row mb-16">
-        <div><strong>Invoice:</strong> ${inv.invoice_number}</div>
-        <div><strong>Date:</strong> ${dateStr(inv.invoice_date)}</div>
+        <div><strong>${t('invoice_number')}:</strong> ${inv.invoice_number}</div>
+        <div><strong>${t('invoice_date')}:</strong> ${dateStr(inv.invoice_date)}</div>
       </div>
-      <div class="mb-16"><strong>Customer:</strong> ${inv.customer_name} ${inv.customer_gstin ? '(GSTIN: ' + inv.customer_gstin + ')' : ''}</div>
+      <div class="mb-16"><strong>${t('customer')}:</strong> ${inv.customer_name} ${inv.customer_gstin ? '(GSTIN: ' + inv.customer_gstin + ')' : ''}</div>
       <div class="table-wrap mb-16">
         <table>
-          <thead><tr><th>#</th><th>Product</th><th>HSN</th><th class="text-center">Qty</th><th>Unit</th><th class="text-right">Rate</th><th class="text-right">Taxable</th><th class="text-right">Total</th></tr></thead>
+          <thead><tr><th>#</th><th>${t('product')}</th><th>${t('hsn')}</th><th class="text-center">${t('qty')}</th><th>${t('unit')}</th><th class="text-right">${t('rate')}</th><th class="text-right">${t('taxable_amount')}</th><th class="text-right">${t('amount')}</th></tr></thead>
           <tbody>${detailRows}</tbody>
         </table>
       </div>
       <div style="text-align:right">
-        <div class="mb-4"><strong>Subtotal:</strong> ${currency(inv.subtotal)}</div>
-        ${inv.discount_amount > 0 ? '<div class="mb-4">Discount: -' + currency(inv.discount_amount) + '</div>' : ''}
-        <div class="mb-4">Taxable: ${currency(inv.taxable_amount)}</div>
-        ${inv.cgst_amount > 0 ? '<div class="mb-4">CGST: ' + currency(inv.cgst_amount) + '</div>' : ''}
-        ${inv.sgst_amount > 0 ? '<div class="mb-4">SGST: ' + currency(inv.sgst_amount) + '</div>' : ''}
-        ${inv.igst_amount > 0 ? '<div class="mb-4">IGST: ' + currency(inv.igst_amount) + '</div>' : ''}
-        <div class="fw-600" style="font-size:1.1rem;border-top:2px solid var(--primary);padding-top:8px;display:inline-block">Grand Total: ${currency(inv.total_amount)}</div>
+        <div class="mb-4"><strong>${t('subtotal')}:</strong> ${currency(inv.subtotal)}</div>
+        ${inv.discount_amount > 0 ? `<div class="mb-4">${t('discount')}: -${currency(inv.discount_amount)}</div>` : ''}
+        <div class="mb-4">${t('taxable_amount')}: ${currency(inv.taxable_amount)}</div>
+        ${inv.cgst_amount > 0 ? `<div class="mb-4">${t('cgst')}: ${currency(inv.cgst_amount)}</div>` : ''}
+        ${inv.sgst_amount > 0 ? `<div class="mb-4">${t('sgst')}: ${currency(inv.sgst_amount)}</div>` : ''}
+        ${inv.igst_amount > 0 ? `<div class="mb-4">${t('igst')}: ${currency(inv.igst_amount)}</div>` : ''}
+        <div class="fw-600" style="font-size:1.1rem;border-top:2px solid var(--primary);padding-top:8px;display:inline-block">${t('grand_total')}: ${currency(inv.total_amount)}</div>
       </div>`;
 
     const footer = el('div', { className: 'btn-row btn-row-right' }, [
       el('button', { className: 'btn btn-primary', onClick: () => { reprintInvoice(inv); m.remove(); } }, 'Download PDF'),
-      el('button', { className: 'btn btn-outline', onClick: () => m.remove() }, 'Close'),
+      el('button', { className: 'btn btn-outline', onClick: () => m.remove() }, t('cancel')),
     ]);
-    const m = modal('Invoice ' + inv.invoice_number, content, { footer, wide: true });
+    const m = modal(t('invoice_number') + ' ' + inv.invoice_number, content, { footer, wide: true });
   }
 
   async function reprintInvoice(inv) {

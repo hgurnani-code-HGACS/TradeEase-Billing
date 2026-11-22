@@ -2,6 +2,7 @@ TE.Products = (function () {
   const { el, currency, toast, modal, debounce } = TE.Utils;
 
   async function render(container) {
+    const t = TE.Lang.t;
     const products = await TE.Store.getAll('products');
     const categories = await TE.Store.getAll('categories');
     const catMap = {};
@@ -12,16 +13,16 @@ TE.Products = (function () {
     const header = el('div', { className: 'flex-between mb-16' }, [
       el('div', { className: 'search-box' }, [
         el('svg', { innerHTML: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' }),
-        el('input', { type: 'text', className: 'form-input', placeholder: 'Search products...', id: 'productSearch' }),
+        el('input', { type: 'text', className: 'form-input', placeholder: t('search_products_master'), id: 'productSearch' }),
       ]),
       el('div', { className: 'btn-row' }, [
         el('button', { className: 'btn btn-outline', onClick: () => showCategoryModal(categories) }, [
           el('span', { innerHTML: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>' }),
-          'Categories',
+          t('categories'),
         ]),
         el('button', { className: 'btn btn-primary', onClick: () => showProductForm(null, categories) }, [
           el('span', { innerHTML: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' }),
-          'Add Product',
+          t('add_product'),
         ]),
       ]),
     ]);
@@ -33,14 +34,14 @@ TE.Products = (function () {
     function buildTable(items) {
       table.innerHTML = '';
       if (items.length === 0) {
-        table.innerHTML = '<div class="empty-state"><p>No products found</p></div>';
+        table.innerHTML = `<div class="empty-state"><p>${t('no_products_found')}</p></div>`;
         return;
       }
-      const t = el('table');
-      t.innerHTML = `<thead><tr>
-        <th>SKU</th><th>Product Name</th><th>Category</th><th>HSN</th>
-        <th class="text-right">Purchase</th><th class="text-right">Selling</th><th class="text-right">MRP</th>
-        <th class="text-right">GST%</th><th>Unit</th><th>Status</th><th>Actions</th>
+      const tbl = el('table');
+      tbl.innerHTML = `<thead><tr>
+        <th>${t('sku')}</th><th>${t('product')}</th><th>${t('categories')}</th><th>${t('hsn')}</th>
+        <th class="text-right">${t('purchase')}</th><th class="text-right">${t('selling')}</th><th class="text-right">${t('mrp')}</th>
+        <th class="text-right">${t('gst_pct')}</th><th>${t('unit')}</th><th>${t('status')}</th><th>${t('actions')}</th>
       </tr></thead>`;
       const tbody = el('tbody');
       for (const p of items) {
@@ -55,15 +56,15 @@ TE.Products = (function () {
           <td class="text-right">${currency(p.mrp)}</td>
           <td class="text-right">${p.gst_rate}%</td>
           <td>${p.unit || ''}</td>
-          <td>${p.status === 'active' ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-muted">Inactive</span>'}</td>
+          <td>${p.status === 'active' ? `<span class="badge badge-success">${t('active')}</span>` : `<span class="badge badge-muted">${t('inactive')}</span>`}</td>
           <td></td>`;
         const actCell = tr.lastElementChild;
-        const editBtn = el('button', { className: 'btn btn-ghost btn-sm', onClick: () => showProductForm(p, categories) }, 'Edit');
+        const editBtn = el('button', { className: 'btn btn-ghost btn-sm', onClick: () => showProductForm(p, categories) }, t('edit'));
         actCell.appendChild(editBtn);
         tbody.appendChild(tr);
       }
-      t.appendChild(tbody);
-      table.appendChild(t);
+      tbl.appendChild(tbody);
+      table.appendChild(tbl);
     }
 
     buildTable(products);
@@ -88,6 +89,7 @@ TE.Products = (function () {
   }
 
   function showProductForm(product, categories) {
+    const t = TE.Lang.t;
     const isEdit = !!product;
     const form = el('div');
     form.innerHTML = `
@@ -161,18 +163,18 @@ TE.Products = (function () {
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">Status</label>
+        <label class="form-label">${t('status')}</label>
         <select class="form-select" id="pStatus">
-          <option value="active" ${product?.status === 'active' || !product ? 'selected' : ''}>Active</option>
-          <option value="inactive" ${product?.status === 'inactive' ? 'selected' : ''}>Inactive</option>
+          <option value="active" ${product?.status === 'active' || !product ? 'selected' : ''}>${t('active')}</option>
+          <option value="inactive" ${product?.status === 'inactive' ? 'selected' : ''}>${t('inactive')}</option>
         </select>
       </div>`;
 
     const footer = el('div', { className: 'btn-row btn-row-right' }, [
-      el('button', { className: 'btn btn-outline', onClick: () => m.remove() }, 'Cancel'),
-      el('button', { className: 'btn btn-primary', onClick: saveProduct }, isEdit ? 'Update Product' : 'Save Product'),
+      el('button', { className: 'btn btn-outline', onClick: () => m.remove() }, t('cancel')),
+      el('button', { className: 'btn btn-primary', onClick: saveProduct }, isEdit ? 'Update Product' : t('save')),
     ]);
-    const m = modal(isEdit ? 'Edit Product' : 'Add Product', form, { footer, wide: true });
+    const m = modal(isEdit ? 'Edit Product' : t('add_product'), form, { footer, wide: true });
 
     async function saveProduct() {
       const data = {
@@ -207,6 +209,7 @@ TE.Products = (function () {
   }
 
   function showCategoryModal(categories) {
+    const t = TE.Lang.t;
     const form = el('div');
     function renderList() {
       form.innerHTML = '';
@@ -218,7 +221,7 @@ TE.Products = (function () {
             categories = categories.filter(x => x.id !== c.id);
             await TE.Store.del('categories', c.id);
             renderList();
-          }}, 'Remove'),
+          }}, t('delete')),
         ]);
         list.appendChild(row);
       });
@@ -232,12 +235,12 @@ TE.Products = (function () {
           await TE.Store.put('categories', cat);
           categories.push(cat);
           renderList();
-        }}, 'Add'),
+        }}, t('add')),
       ]);
       form.appendChild(addRow);
     }
     renderList();
-    modal('Manage Categories', form);
+    modal(t('categories'), form);
   }
 
   return { render };

@@ -2,17 +2,18 @@ TE.Customers = (function () {
   const { el, currency, toast, modal, debounce, INDIAN_STATES } = TE.Utils;
 
   async function render(container) {
+    const t = TE.Lang.t;
     const customers = await TE.Store.getAll('customers');
     container.innerHTML = '';
 
     const header = el('div', { className: 'flex-between mb-16' }, [
       el('div', { className: 'search-box' }, [
         el('svg', { innerHTML: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' }),
-        el('input', { type: 'text', className: 'form-input', placeholder: 'Search customers...', id: 'customerSearch' }),
+        el('input', { type: 'text', className: 'form-input', placeholder: t('search_customers'), id: 'customerSearch' }),
       ]),
       el('button', { className: 'btn btn-primary', onClick: () => showCustomerForm() }, [
         el('span', { innerHTML: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' }),
-        'Add Customer',
+        t('add_customer'),
       ]),
     ]);
 
@@ -26,10 +27,10 @@ TE.Customers = (function () {
         table.innerHTML = '<div class="empty-state"><p>No customers found</p></div>';
         return;
       }
-      const t = el('table');
-      t.innerHTML = `<thead><tr>
-        <th>ID</th><th>Customer Name</th><th>Mobile</th><th>GSTIN</th>
-        <th>State</th><th>Type</th><th class="text-right">Balance</th><th>Actions</th>
+      const tbl = el('table');
+      tbl.innerHTML = `<thead><tr>
+        <th>ID</th><th>${t('customer')}</th><th>${t('mobile')}</th><th>GSTIN</th>
+        <th>State</th><th>${t('type')}</th><th class="text-right">${t('balance')}</th><th>${t('actions')}</th>
       </tr></thead>`;
       const tbody = el('tbody');
       for (const c of items) {
@@ -44,11 +45,11 @@ TE.Customers = (function () {
           <td class="text-right ${(c.opening_balance || 0) > 0 ? 'text-danger' : ''}">${currency(c.opening_balance || 0)}</td>
           <td></td>`;
         const actCell = tr.lastElementChild;
-        actCell.appendChild(el('button', { className: 'btn btn-ghost btn-sm', onClick: () => showCustomerForm(c) }, 'Edit'));
+        actCell.appendChild(el('button', { className: 'btn btn-ghost btn-sm', onClick: () => showCustomerForm(c) }, t('edit')));
         tbody.appendChild(tr);
       }
-      t.appendChild(tbody);
-      table.appendChild(t);
+      tbl.appendChild(tbody);
+      table.appendChild(tbl);
     }
 
     buildTable(customers);
@@ -73,6 +74,7 @@ TE.Customers = (function () {
   }
 
   function showCustomerForm(customer) {
+    const t = TE.Lang.t;
     const isEdit = !!customer;
     const stateOptions = INDIAN_STATES.map(s =>
       `<option value="${s.name}" data-code="${s.code}" ${customer?.state === s.name ? 'selected' : ''}>${s.name} (${s.code})</option>`
@@ -92,7 +94,7 @@ TE.Customers = (function () {
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">Mobile</label>
+          <label class="form-label">${t('mobile')}</label>
           <input type="tel" class="form-input" id="cMobile" value="${customer?.mobile || ''}" placeholder="10-digit mobile">
         </div>
         <div class="form-group">
@@ -101,7 +103,7 @@ TE.Customers = (function () {
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">Billing Address</label>
+        <label class="form-label">${t('address')}</label>
         <textarea class="form-input form-textarea" id="cBillAddr" rows="2">${customer?.billing_address || ''}</textarea>
       </div>
       <div class="form-group">
@@ -124,32 +126,32 @@ TE.Customers = (function () {
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">Customer Type</label>
+          <label class="form-label">${t('type')}</label>
           <select class="form-select" id="cType">
-            ${['Retail','Wholesale','Distributor','Institutional'].map(t =>
-              `<option ${customer?.customer_type === t ? 'selected' : ''}>${t}</option>`
+            ${['Retail','Wholesale','Distributor','Institutional'].map(tp =>
+              `<option ${customer?.customer_type === tp ? 'selected' : ''}>${tp}</option>`
             ).join('')}
           </select>
         </div>
         <div class="form-group">
           <label class="form-label">Payment Terms</label>
           <select class="form-select" id="cTerms">
-            ${['Cash','7 days','15 days','30 days','45 days','60 days'].map(t =>
-              `<option ${customer?.payment_terms === t ? 'selected' : ''}>${t}</option>`
+            ${['Cash','7 days','15 days','30 days','45 days','60 days'].map(tp =>
+              `<option ${customer?.payment_terms === tp ? 'selected' : ''}>${tp}</option>`
             ).join('')}
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">Opening Balance</label>
+          <label class="form-label">${t('balance')}</label>
           <input type="number" class="form-input" id="cBalance" value="${customer?.opening_balance || 0}" step="0.01" min="0">
         </div>
       </div>`;
 
     const footer = el('div', { className: 'btn-row btn-row-right' }, [
-      el('button', { className: 'btn btn-outline', onClick: () => m.remove() }, 'Cancel'),
-      el('button', { className: 'btn btn-primary', onClick: saveCustomer }, isEdit ? 'Update Customer' : 'Save Customer'),
+      el('button', { className: 'btn btn-outline', onClick: () => m.remove() }, t('cancel')),
+      el('button', { className: 'btn btn-primary', onClick: saveCustomer }, isEdit ? 'Update Customer' : t('save')),
     ]);
-    const m = modal(isEdit ? 'Edit Customer' : 'Add Customer', form, { footer, wide: true });
+    const m = modal(isEdit ? 'Edit Customer' : t('add_customer'), form, { footer, wide: true });
 
     const stateSelect = document.getElementById('cState');
     stateSelect.addEventListener('change', () => {

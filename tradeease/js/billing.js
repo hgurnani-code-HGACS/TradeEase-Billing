@@ -1,5 +1,6 @@
 TE.Billing = (function () {
-  const { el, currency, toast, modal, debounce, today, uid } = TE.Utils;
+  const { el, currency, toast, modal, today, uid } = TE.Utils;
+  const t = () => TE.Lang.t;
 
   let selectedCustomer = null;
   let lineItems = [];
@@ -11,6 +12,8 @@ TE.Billing = (function () {
   let notes = '';
   let editingInvoice = null;
   let sessionActive = false;
+  let selectedCategory = null;
+  let productSearchQuery = '';
 
   function reset() {
     selectedCustomer = null;
@@ -22,9 +25,12 @@ TE.Billing = (function () {
     editingInvoice = null;
     invoiceDate = today();
     sessionActive = false;
+    selectedCategory = null;
+    productSearchQuery = '';
   }
 
   async function render(container, draftInvoice) {
+    const tr = t();
     if (draftInvoice) {
       await loadDraft(draftInvoice);
       sessionActive = true;
@@ -37,53 +43,35 @@ TE.Billing = (function () {
     const products = await TE.Store.getAll('products');
     const activeProducts = products.filter(p => p.status === 'active');
     const customers = await TE.Store.getAll('customers');
+    const categories = await TE.Store.getAll('categories');
     const businessState = await TE.Store.getSetting('business_state_code') || '24';
+    const stockBalances = {};
+    for (const p of activeProducts) {
+      stockBalances[p.sku_code] = await TE.Store.getStockBalance(p.sku_code);
+    }
 
     container.innerHTML = '';
-
     const wrapper = el('div');
 
-    const invHeader = el('div', { className: 'billing-header' });
-
-    const leftCol = el('div');
-    leftCol.innerHTML = `
-      <div class="form-group mb-8">
-        <label class="form-label">Invoice Number</label>
-        <input type="text" class="form-input" value="${invoiceNumber}" readonly style="background:#f1f5f9;font-weight:600">
-      </div>
-      <div class="form-group mb-8">
-        <label class="form-label">Invoice Date</label>
-        <input type="date" class="form-input" id="billDate" value="${invoiceDate}">
-      </div>`;
-
-    const rightCol = el('div');
-    const custLabel = el('label', { className: 'form-label' }, 'Customer *');
-    rightCol.appendChild(custLabel);
-
+    // --- Customer bar ---
     if (selectedCustomer) {
-      const bar = el('div', { className: 'selected-customer-bar mb-8' }, [
+      const bar = el('div', { className: 'pos-customer-bar' }, [
         el('div', { className: 'cust-info' }, [
           el('strong', {}, selectedCustomer.customer_name),
-          el('span', {}, `${selectedCustomer.customer_id} | ${selectedCustomer.mobile || 'No mobile'} | ${selectedCustomer.gstin || 'No GSTIN'}`),
+          el('span', {}, `${selectedCustomer.customer_id} | ${selectedCustomer.mobile || tr('no_customer')} | ${selectedCustomer.gstin || tr('no_gstin')}`),
         ]),
-        el('button', { className: 'btn btn-outline btn-sm', onClick: () => { selectedCustomer = null; render(container); } }, 'Change'),
+        el('button', { className: 'btn btn-outline btn-sm', onClick: () => { selectedCustomer = null; render(container); } }, tr('change')),
       ]);
-      rightCol.appendChild(bar);
+      wrapper.appendChild(bar);
     } else {
-      const searchWrap = el('div', { className: 'customer-search-wrap mb-8' });
-      const searchInput = el('input', { type: 'text', className: 'form-input', placeholder: 'Type customer name or mobile...' });
+      const searchWrap = el('div', { className: 'pos-customer-search' });
+      const searchInput = el('input', { type: 'text', className: 'form-input', placeholder: tr('type_customer') });
       const dropdown = el('div', { className: 'customer-dropdown', style: { display: 'none' } });
       let custHighlight = -1;
       let custMatches = [];
 
       function matchCustomer(c, q) {
-        const searchable = [
-          c.customer_name || '',
-          c.mobile || '',
-          c.customer_id || '',
-          c.gstin || '',
-          c.state || ''
-        ].join(' ').toLowerCase();
+        const searchable = [c.customer_name || '', c.mobile || '', c.customer_id || '', c.gstin || '', c.state || ''].join(' ').toLowerCase();
         const words = q.split(/\s+/);
         return words.every(w => searchable.includes(w));
       }
@@ -92,18 +80,14 @@ TE.Billing = (function () {
         dropdown.innerHTML = '';
         custHighlight = -1;
         if (custMatches.length === 0) {
-          dropdown.innerHTML = '<div style="padding:12px 14px;color:var(--text-muted);font-size:.85rem">No matches found</div>';
+          dropdown.innerHTML = `<div style="padding:12px 14px;color:var(--text-muted);font-size:.85rem">${tr('no_matches')}</div>`;
           dropdown.style.display = 'block';
           return;
         }
-        custMatches.forEach((c, i) => {
+        custMatches.forEach((c) => {
           const item = el('div', { className: 'customer-dropdown-item' });
-          item.addEventListener('mousedown', (e) => {
-            e.preventDefault();
-            selectedCustomer = c;
-            render(container);
-          });
-          item.innerHTML = `<div class="cust-name">${c.customer_name}</div><div class="cust-meta">${c.customer_id} | ${c.mobile || 'No mobile'} | ${c.gstin || 'No GSTIN'}</div>`;
+          item.addEventListener('mousedown', (e) => { e.preventDefault(); selectedCustomer = c; render(container); });
+          item.innerHTML = `<div class="cust-name">${c.customer_name}</div><div class="cust-meta">${c.customer_id} | ${c.mobile || tr('no_customer')} | ${c.gstin || tr('no_gstin')}</div>`;
           dropdown.appendChild(item);
         });
         dropdown.style.display = 'block';
@@ -122,323 +106,249 @@ TE.Billing = (function () {
 
       function filterCustomers() {
         const q = searchInput.value.trim().toLowerCase();
-        if (q.length === 0) {
-          custMatches = customers.slice(0, 10);
-        } else {
-          custMatches = customers.filter(c => matchCustomer(c, q)).slice(0, 10);
-        }
+        custMatches = q.length === 0 ? customers.slice(0, 10) : customers.filter(c => matchCustomer(c, q)).slice(0, 10);
         renderCustDropdown();
       }
 
       searchInput.addEventListener('input', filterCustomers);
-
-      searchInput.addEventListener('focus', () => {
-        if (dropdown.style.display === 'none') filterCustomers();
-      });
-
+      searchInput.addEventListener('focus', () => { if (dropdown.style.display === 'none') filterCustomers(); });
       searchInput.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowDown') {
-          e.preventDefault();
-          if (dropdown.style.display === 'none') filterCustomers();
-          else setCustHighlight(Math.min(custHighlight + 1, custMatches.length - 1));
-        } else if (e.key === 'ArrowUp') {
-          e.preventDefault();
-          setCustHighlight(Math.max(custHighlight - 1, 0));
-        } else if (e.key === 'Enter') {
-          e.preventDefault();
-          if (custHighlight >= 0 && custHighlight < custMatches.length) {
-            selectedCustomer = custMatches[custHighlight];
-            render(container);
-          }
-        } else if (e.key === 'Escape') {
-          dropdown.style.display = 'none';
-        }
+        if (e.key === 'ArrowDown') { e.preventDefault(); if (dropdown.style.display === 'none') filterCustomers(); else setCustHighlight(Math.min(custHighlight + 1, custMatches.length - 1)); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); setCustHighlight(Math.max(custHighlight - 1, 0)); }
+        else if (e.key === 'Enter') { e.preventDefault(); if (custHighlight >= 0 && custHighlight < custMatches.length) { selectedCustomer = custMatches[custHighlight]; render(container); } }
+        else if (e.key === 'Escape') { dropdown.style.display = 'none'; }
       });
-
       searchInput.addEventListener('blur', () => { setTimeout(() => dropdown.style.display = 'none', 250); });
+
+      const addNewBtn = el('button', { className: 'btn btn-ghost btn-sm', onClick: () => TE.Customers.showCustomerForm() }, tr('add_new_customer'));
       searchWrap.appendChild(searchInput);
       searchWrap.appendChild(dropdown);
-      rightCol.appendChild(searchWrap);
-
-      const addNewBtn = el('button', { className: 'btn btn-ghost btn-sm', onClick: () => {
-        TE.Customers.showCustomerForm();
-      }}, '+ Add New Customer');
-      rightCol.appendChild(addNewBtn);
+      wrapper.appendChild(searchWrap);
+      wrapper.appendChild(addNewBtn);
     }
 
-    invHeader.appendChild(leftCol);
-    invHeader.appendChild(rightCol);
-    wrapper.appendChild(invHeader);
+    // --- POS Layout: Products left, Cart right ---
+    const posLayout = el('div', { className: 'pos-layout' });
 
-    const itemsCard = el('div', { className: 'card mb-16' });
-    const itemsHeader = el('div', { className: 'card-header' }, [
-      el('h3', {}, 'Invoice Items'),
-      el('span', { className: 'text-sm text-secondary' }, `${lineItems.length} item(s)`),
-    ]);
-    itemsCard.appendChild(itemsHeader);
+    // === LEFT SIDE: Categories + Product Grid ===
+    const posLeft = el('div', { className: 'pos-left' });
 
-    const itemsBody = el('div', { className: 'card-body no-pad billing-items-table' });
-    const tWrap = el('div', { className: 'table-wrap' });
-    const t = el('table');
-    t.innerHTML = `<thead><tr>
-      <th style="width:40px">#</th>
-      <th style="min-width:200px">Product</th>
-      <th style="width:70px">HSN</th>
-      <th style="width:60px">Qty</th>
-      <th style="width:60px">Unit</th>
-      <th style="width:100px" class="text-right">Rate</th>
-      <th style="width:70px" class="text-right">Disc%</th>
-      <th style="width:60px" class="text-right">GST%</th>
-      <th style="width:110px" class="text-right">Amount</th>
-      <th style="width:40px"></th>
-    </tr></thead>`;
-    const tbody = el('tbody');
+    // Invoice meta row
+    const metaRow = el('div', { className: 'pos-meta-row' });
+    metaRow.innerHTML = `
+      <div class="form-group">
+        <label class="form-label">${tr('invoice_number')}</label>
+        <input type="text" class="form-input" value="${invoiceNumber}" readonly style="background:#f1f5f9;font-weight:600">
+      </div>
+      <div class="form-group">
+        <label class="form-label">${tr('invoice_date')}</label>
+        <input type="date" class="form-input" id="billDate" value="${invoiceDate}">
+      </div>`;
+    posLeft.appendChild(metaRow);
 
-    lineItems.forEach((item, idx) => {
-      const tr = buildLineRow(item, idx, activeProducts, container, businessState);
-      tbody.appendChild(tr);
+    // Category strip
+    const catStrip = el('div', { className: 'pos-categories' });
+    const allBtn = el('button', { className: 'pos-cat-btn' + (selectedCategory === null ? ' active' : ''), onClick: () => { selectedCategory = null; render(container); } }, tr('all_products'));
+    catStrip.appendChild(allBtn);
+    categories.forEach(cat => {
+      const btn = el('button', {
+        className: 'pos-cat-btn' + (selectedCategory === cat.id ? ' active' : ''),
+        onClick: () => { selectedCategory = cat.id; render(container); }
+      }, cat.name);
+      catStrip.appendChild(btn);
     });
+    posLeft.appendChild(catStrip);
 
-    const addRow = el('tr');
-    const addCell = el('td', { colspan: '10', style: { padding: '8px 16px' } });
-    const addLineWrap = el('div', { className: 'sku-search', style: { maxWidth: '400px' } });
-    const skuInput = el('input', { type: 'text', placeholder: 'Type SKU or product name to add...', style: { padding: '8px 12px', width: '100%' } });
-    const skuDrop = el('div', { className: 'sku-dropdown', style: { display: 'none' } });
-    let skuHighlight = -1;
-    let skuMatches = [];
+    // Product search
+    const searchDiv = el('div', { className: 'pos-search' });
+    const prodSearchInput = el('input', { type: 'text', placeholder: tr('search_products'), value: productSearchQuery });
+    prodSearchInput.addEventListener('input', () => {
+      productSearchQuery = prodSearchInput.value;
+      renderProductGrid();
+    });
+    searchDiv.appendChild(prodSearchInput);
+    posLeft.appendChild(searchDiv);
 
-    function positionSkuDrop() {
-      const rect = skuInput.getBoundingClientRect();
-      skuDrop.style.top = rect.bottom + 2 + 'px';
-      skuDrop.style.left = rect.left + 'px';
-      skuDrop.style.width = Math.max(rect.width, 320) + 'px';
-    }
+    // Product grid
+    const gridDiv = el('div', { className: 'pos-product-grid' });
+    posLeft.appendChild(gridDiv);
 
-    function renderSkuDropdown() {
-      skuDrop.innerHTML = '';
-      skuHighlight = -1;
-      if (skuMatches.length === 0) {
-        const noRes = el('div', { className: 'sku-no-results' });
-        noRes.textContent = 'No products found';
-        skuDrop.appendChild(noRes);
-        positionSkuDrop();
-        skuDrop.style.display = 'block';
+    function renderProductGrid() {
+      gridDiv.innerHTML = '';
+      let filtered = activeProducts;
+      if (selectedCategory) filtered = filtered.filter(p => p.category === selectedCategory);
+      if (productSearchQuery.trim()) {
+        const words = productSearchQuery.trim().toLowerCase().split(/\s+/);
+        filtered = filtered.filter(p => {
+          const searchable = (p.sku_code + ' ' + p.product_name + ' ' + (p.hsn_code || '')).toLowerCase();
+          return words.every(w => searchable.includes(w));
+        });
+      }
+      if (filtered.length === 0) {
+        gridDiv.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><p>${tr('no_products_in_category')}</p></div>`;
         return;
       }
-      skuMatches.forEach((p, i) => {
-        const item = el('div', { className: 'sku-dropdown-item' });
-        item.addEventListener('mousedown', (e) => {
-          e.preventDefault();
-          addLineItem(p);
-          skuInput.value = '';
-          skuDrop.style.display = 'none';
-          render(container);
-        });
-        item.innerHTML = `<div class="sku-name">${p.product_name}</div><div class="sku-meta">${p.sku_code} | ${currency(p.selling_price)} | GST ${p.gst_rate}%</div>`;
-        skuDrop.appendChild(item);
+      filtered.forEach(p => {
+        const stock = stockBalances[p.sku_code] || 0;
+        const isOut = stock <= 0;
+        const isLow = stock > 0 && stock <= (p.min_stock_level || 0);
+        const card = el('div', { className: 'pos-product-card' + (isOut ? ' disabled' : '') });
+        if (!isOut) {
+          card.addEventListener('click', () => {
+            addLineItem(p);
+            renderCart();
+          });
+        }
+        const stockClass = isOut ? 'no-stock' : (isLow ? 'low-stock' : 'in-stock');
+        const stockLabel = isOut ? tr('out_of_stock') : `${tr('stock')}: ${stock}`;
+        card.innerHTML = `
+          <div class="prod-name">${p.product_name}</div>
+          <div class="prod-sku">${p.sku_code}</div>
+          <span class="prod-stock ${stockClass}">${stockLabel}</span>
+          <div class="prod-price">${currency(p.selling_price)}</div>`;
+        gridDiv.appendChild(card);
       });
-      positionSkuDrop();
-      skuDrop.style.display = 'block';
-      if (skuMatches.length > 0) setSkuHighlight(0);
     }
 
-    function setSkuHighlight(idx) {
-      const items = skuDrop.querySelectorAll('.sku-dropdown-item');
-      items.forEach(it => it.classList.remove('highlighted'));
-      skuHighlight = idx;
-      if (idx >= 0 && idx < items.length) {
-        items[idx].classList.add('highlighted');
-        items[idx].scrollIntoView({ block: 'nearest' });
+    renderProductGrid();
+
+    // === RIGHT SIDE: Cart ===
+    const posRight = el('div', { className: 'pos-right' });
+    const cartDiv = el('div', { className: 'pos-cart' });
+
+    // Cart header
+    const cartHeader = el('div', { className: 'pos-cart-header' }, [
+      el('h3', {}, `${tr('cart')} (${lineItems.reduce((s, i) => s + i.quantity, 0)} ${lineItems.length === 1 ? tr('item') : tr('items')})`),
+      lineItems.length > 0 ? el('button', { className: 'btn btn-ghost btn-sm', onClick: () => { lineItems = []; renderCart(); } }, tr('clear_cart')) : null,
+    ]);
+    cartDiv.appendChild(cartHeader);
+
+    // Cart items
+    const cartItemsDiv = el('div', { className: 'pos-cart-items' });
+    cartDiv.appendChild(cartItemsDiv);
+
+    // Cart footer
+    const cartFooter = el('div', { className: 'pos-cart-footer' });
+    cartDiv.appendChild(cartFooter);
+
+    function renderCart() {
+      // Update header count
+      const headerH3 = cartDiv.querySelector('.pos-cart-header h3');
+      const totalQty = lineItems.reduce((s, i) => s + i.quantity, 0);
+      headerH3.textContent = `${tr('cart')} (${totalQty} ${lineItems.length === 1 ? tr('item') : tr('items')})`;
+
+      // Clear button visibility
+      const existingClear = cartDiv.querySelector('.pos-cart-header .btn');
+      if (lineItems.length > 0 && !existingClear) {
+        cartHeader.appendChild(el('button', { className: 'btn btn-ghost btn-sm', onClick: () => { lineItems = []; renderCart(); } }, tr('clear_cart')));
+      } else if (lineItems.length === 0 && existingClear) {
+        existingClear.remove();
       }
-    }
 
-    function filterProducts() {
-      const q = skuInput.value.trim().toLowerCase();
-      if (q.length < 1) { skuDrop.style.display = 'none'; skuMatches = []; return; }
-      const words = q.split(/\s+/);
-      skuMatches = activeProducts.filter(p => {
-        const searchable = (p.sku_code + ' ' + p.product_name + ' ' + (p.hsn_code || '')).toLowerCase();
-        return words.every(w => searchable.includes(w));
-      }).slice(0, 10);
-      renderSkuDropdown();
-    }
+      // Render items
+      cartItemsDiv.innerHTML = '';
+      if (lineItems.length === 0) {
+        cartItemsDiv.innerHTML = `<div class="pos-cart-empty"><p>${tr('cart_empty')}</p><span>${tr('cart_empty_hint')}</span></div>`;
+      } else {
+        lineItems.forEach((item, idx) => {
+          const lineTotal = calcLineTotal(item);
+          const row = el('div', { className: 'pos-cart-item' });
 
-    skuInput.addEventListener('input', filterProducts);
+          const info = el('div', { className: 'item-info' });
+          info.innerHTML = `<div class="item-name">${item.product_name}</div><div class="item-rate">${currency(item.rate)} x ${item.quantity}</div>`;
 
-    skuInput.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        if (skuDrop.style.display === 'none' && skuMatches.length > 0) renderSkuDropdown();
-        else setSkuHighlight(Math.min(skuHighlight + 1, skuMatches.length - 1));
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setSkuHighlight(Math.max(skuHighlight - 1, 0));
-      } else if (e.key === 'Enter') {
-        e.preventDefault();
-        let product = null;
-        if (skuHighlight >= 0 && skuHighlight < skuMatches.length) {
-          product = skuMatches[skuHighlight];
-        } else {
-          const q = skuInput.value.trim().toUpperCase();
-          product = activeProducts.find(p => p.sku_code === q);
-        }
-        if (product) {
-          addLineItem(product);
-          skuInput.value = '';
-          skuDrop.style.display = 'none';
-          skuMatches = [];
-          render(container);
-        }
-      } else if (e.key === 'Escape') {
-        skuDrop.style.display = 'none';
+          const stepper = el('div', { className: 'qty-stepper' });
+          const minusBtn = el('button', { onClick: () => {
+            if (item.quantity > 1) { item.quantity--; renderCart(); }
+            else { lineItems.splice(idx, 1); renderCart(); }
+          } }, '-');
+          const qtyVal = el('span', { className: 'qty-val' }, String(item.quantity));
+          const plusBtn = el('button', { onClick: () => { item.quantity++; renderCart(); } }, '+');
+          stepper.appendChild(minusBtn);
+          stepper.appendChild(qtyVal);
+          stepper.appendChild(plusBtn);
+
+          const totalSpan = el('div', { className: 'item-total' }, currency(lineTotal));
+
+          const removeBtn = el('button', { className: 'remove-item', onClick: () => { lineItems.splice(idx, 1); renderCart(); }, title: 'Remove' }, '×');
+
+          row.appendChild(info);
+          row.appendChild(stepper);
+          row.appendChild(totalSpan);
+          row.appendChild(removeBtn);
+          cartItemsDiv.appendChild(row);
+        });
       }
-    });
 
-    skuInput.addEventListener('blur', () => { setTimeout(() => skuDrop.style.display = 'none', 200); });
-    skuInput.addEventListener('focus', () => {
-      if (skuInput.value.length >= 1 && skuMatches.length > 0) renderSkuDropdown();
-    });
+      // Render totals and actions
+      cartFooter.innerHTML = '';
+      const totals = calculateTotals(businessState);
+      const isIntra = isIntraState(businessState);
 
-    addLineWrap.appendChild(skuInput);
-    addLineWrap.appendChild(skuDrop);
-    addCell.appendChild(addLineWrap);
-    addRow.appendChild(addCell);
-    tbody.appendChild(addRow);
+      const totalsDiv = el('div', { className: 'pos-cart-totals' });
+      totalsDiv.innerHTML = `
+        <div class="total-line"><span>${tr('subtotal')}</span><span>${currency(totals.subtotal)}</span></div>
+        <div class="total-line"><span>${tr('discount')} ${discountType === 'percentage' ? '(' + discountValue + '%)' : ''}</span><span>${currency(totals.discountAmount)}</span></div>
+        <div class="total-line"><span>${tr('taxable_amount')}</span><span>${currency(totals.taxableAmount)}</span></div>
+        ${isIntra ? `
+          <div class="total-line"><span>${tr('cgst')}</span><span>${currency(totals.cgst)}</span></div>
+          <div class="total-line"><span>${tr('sgst')}</span><span>${currency(totals.sgst)}</span></div>
+        ` : `
+          <div class="total-line"><span>${tr('igst')}</span><span>${currency(totals.igst)}</span></div>
+        `}
+        <div class="total-line grand"><span>${tr('grand_total')}</span><span>${currency(totals.grandTotal)}</span></div>`;
+      cartFooter.appendChild(totalsDiv);
 
-    t.appendChild(tbody);
-    tWrap.appendChild(t);
-    itemsBody.appendChild(tWrap);
-    itemsCard.appendChild(itemsBody);
-    wrapper.appendChild(itemsCard);
-
-    const totals = calculateTotals(businessState);
-    const totalsSection = el('div', { className: 'billing-totals' });
-    const totalsTable = el('table');
-    const isIntra = isIntraState(businessState);
-    totalsTable.innerHTML = `
-      <tr><td class="text-secondary">Subtotal</td><td class="text-right fw-600">${currency(totals.subtotal)}</td></tr>
-      <tr><td class="text-secondary">Discount ${discountType === 'percentage' ? '(' + discountValue + '%)' : ''}</td><td class="text-right">${currency(totals.discountAmount)}</td></tr>
-      <tr><td class="text-secondary">Taxable Amount</td><td class="text-right fw-600">${currency(totals.taxableAmount)}</td></tr>
-      ${isIntra ? `
-        <tr><td class="text-secondary">CGST</td><td class="text-right">${currency(totals.cgst)}</td></tr>
-        <tr><td class="text-secondary">SGST</td><td class="text-right">${currency(totals.sgst)}</td></tr>
-      ` : `
-        <tr><td class="text-secondary">IGST</td><td class="text-right">${currency(totals.igst)}</td></tr>
-      `}
-      <tr class="total-row"><td>Grand Total</td><td class="text-right">${currency(totals.grandTotal)}</td></tr>`;
-    totalsSection.appendChild(totalsTable);
-    wrapper.appendChild(totalsSection);
-
-    const footerSection = el('div', { className: 'card', style: { padding: '16px 20px' } });
-    footerSection.innerHTML = `
-      <div class="form-row" style="margin-bottom:12px">
-        <div class="form-group" style="margin-bottom:0">
-          <label class="form-label">Payment Mode</label>
+      // Payment + discount row
+      const extraRow = el('div', { className: 'pos-meta-row', style: { marginTop: '8px' } });
+      const payModes = ['Cash', 'UPI', 'Bank Transfer', 'Credit', 'Cheque'];
+      const payKeys = ['cash', 'upi', 'bank_transfer', 'credit', 'cheque'];
+      extraRow.innerHTML = `
+        <div class="form-group">
+          <label class="form-label">${tr('payment_mode')}</label>
           <select class="form-select" id="billPayment">
-            ${['Cash','UPI','Bank Transfer','Credit','Cheque'].map(m =>
-              `<option ${paymentMode === m ? 'selected' : ''}>${m}</option>`
-            ).join('')}
+            ${payModes.map((m, i) => `<option value="${m}" ${paymentMode === m ? 'selected' : ''}>${tr(payKeys[i])}</option>`).join('')}
           </select>
         </div>
-        <div class="form-group" style="margin-bottom:0">
-          <label class="form-label">Invoice Discount</label>
-          <div style="display:flex;gap:6px">
-            <select class="form-select" id="billDiscType" style="width:100px">
+        <div class="form-group">
+          <label class="form-label">${tr('invoice_discount')}</label>
+          <div style="display:flex;gap:4px">
+            <select class="form-select" id="billDiscType" style="width:50px">
               <option value="percentage" ${discountType === 'percentage' ? 'selected' : ''}>%</option>
               <option value="amount" ${discountType === 'amount' ? 'selected' : ''}>₹</option>
             </select>
             <input type="number" class="form-input" id="billDiscVal" value="${discountValue}" min="0" step="0.01">
           </div>
-        </div>
-        <div class="form-group" style="margin-bottom:0">
-          <label class="form-label">Notes</label>
-          <input type="text" class="form-input" id="billNotes" value="${notes}" placeholder="Optional notes">
-        </div>
-      </div>`;
-    wrapper.appendChild(footerSection);
+        </div>`;
+      cartFooter.appendChild(extraRow);
 
-    const actions = el('div', { className: 'billing-actions' }, [
-      el('button', { className: 'btn btn-outline', onClick: () => { reset(); TE.App.navigate('billing'); } }, 'Clear'),
-      el('button', { className: 'btn btn-warning', onClick: () => saveBill('draft', container, businessState) }, 'Save Draft'),
-      el('button', { className: 'btn btn-success btn-lg', onClick: () => saveBill('posted', container, businessState) }, [
-        el('span', { innerHTML: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>' }),
-        'Post & Generate Invoice',
-      ]),
-    ]);
-    wrapper.appendChild(actions);
+      document.getElementById('billPayment')?.addEventListener('change', (e) => { paymentMode = e.target.value; });
+      document.getElementById('billDiscType')?.addEventListener('change', (e) => { discountType = e.target.value; renderCart(); });
+      document.getElementById('billDiscVal')?.addEventListener('change', (e) => { discountValue = Number(e.target.value) || 0; renderCart(); });
+
+      // Action buttons
+      const actions = el('div', { className: 'pos-cart-actions' });
+      actions.appendChild(el('button', { className: 'btn btn-outline btn-sm', onClick: () => { reset(); TE.App.navigate('billing'); } }, tr('clear_bill')));
+      actions.appendChild(el('button', { className: 'btn btn-warning btn-sm', onClick: () => saveBill('draft', container, businessState) }, tr('save_draft')));
+      actions.appendChild(el('button', { className: 'btn btn-success', onClick: () => saveBill('posted', container, businessState) }, tr('post_invoice')));
+      cartFooter.appendChild(actions);
+    }
+
+    renderCart();
+
+    posRight.appendChild(cartDiv);
+    posLayout.appendChild(posLeft);
+    posLayout.appendChild(posRight);
+    wrapper.appendChild(posLayout);
 
     container.appendChild(wrapper);
 
     document.getElementById('billDate')?.addEventListener('change', (e) => { invoiceDate = e.target.value; });
-    document.getElementById('billPayment')?.addEventListener('change', (e) => { paymentMode = e.target.value; });
-    document.getElementById('billDiscType')?.addEventListener('change', (e) => { discountType = e.target.value; render(container); });
-    document.getElementById('billDiscVal')?.addEventListener('change', (e) => { discountValue = Number(e.target.value) || 0; render(container); });
-    document.getElementById('billNotes')?.addEventListener('change', (e) => { notes = e.target.value; });
-  }
-
-  function buildLineRow(item, idx, products, container, businessState) {
-    const { el, currency } = TE.Utils;
-    const tr = el('tr');
-    const lineTotal = calcLineTotal(item);
-
-    tr.innerHTML = `
-      <td class="text-center">${idx + 1}</td>
-      <td>
-        <div class="fw-600 text-sm">${item.product_name}</div>
-        <div class="text-sm text-secondary">${item.sku_code}</div>
-      </td>
-      <td class="text-sm">${item.hsn_code || ''}</td>
-      <td></td>
-      <td class="text-sm">${item.unit || ''}</td>
-      <td></td>
-      <td></td>
-      <td class="text-right text-sm">${item.gst_rate}%</td>
-      <td class="text-right fw-600">${currency(lineTotal)}</td>
-      <td></td>`;
-
-    const qtyCell = tr.children[3];
-    const qtyInput = el('input', { type: 'number', value: item.quantity, min: '1', step: '1', style: { width: '60px', textAlign: 'center' } });
-    qtyInput.addEventListener('change', () => {
-      item.quantity = Number(qtyInput.value) || 1;
-      render(container);
-    });
-    qtyCell.innerHTML = '';
-    qtyCell.appendChild(qtyInput);
-
-    const rateCell = tr.children[5];
-    const rateInput = el('input', { type: 'number', value: item.rate, min: '0', step: '0.01', style: { width: '90px', textAlign: 'right' } });
-    rateInput.addEventListener('change', () => {
-      item.rate = Number(rateInput.value) || 0;
-      render(container);
-    });
-    rateCell.innerHTML = '';
-    rateCell.appendChild(rateInput);
-
-    const discCell = tr.children[6];
-    const discInput = el('input', { type: 'number', value: item.discount || 0, min: '0', max: '100', step: '0.01', style: { width: '60px', textAlign: 'right' } });
-    discInput.addEventListener('change', () => {
-      item.discount = Number(discInput.value) || 0;
-      render(container);
-    });
-    discCell.innerHTML = '';
-    discCell.appendChild(discInput);
-
-    const removeCell = tr.children[9];
-    removeCell.innerHTML = '';
-    removeCell.appendChild(el('button', { className: 'remove-line', onClick: () => {
-      lineItems.splice(idx, 1);
-      render(container);
-    }, title: 'Remove line' }, '&times;'));
-
-    return tr;
   }
 
   function addLineItem(product) {
     const existing = lineItems.find(l => l.sku_code === product.sku_code);
-    if (existing) {
-      existing.quantity += 1;
-      return;
-    }
+    if (existing) { existing.quantity += 1; return; }
     lineItems.push({
       id: uid(),
       sku_code: product.sku_code,
@@ -455,8 +365,7 @@ TE.Billing = (function () {
 
   function calcLineTotal(item) {
     const gross = item.quantity * item.rate;
-    const disc = gross * (item.discount || 0) / 100;
-    return gross - disc;
+    return gross - gross * (item.discount || 0) / 100;
   }
 
   function isIntraState(businessStateCode) {
@@ -466,22 +375,12 @@ TE.Billing = (function () {
 
   function calculateTotals(businessStateCode) {
     let subtotal = 0;
-    let totalTax = 0;
     let cgst = 0, sgst = 0, igst = 0;
     const intra = isIntraState(businessStateCode);
 
-    for (const item of lineItems) {
-      const lineVal = calcLineTotal(item);
-      subtotal += lineVal;
-    }
+    for (const item of lineItems) subtotal += calcLineTotal(item);
 
-    let discountAmount = 0;
-    if (discountType === 'percentage') {
-      discountAmount = subtotal * discountValue / 100;
-    } else {
-      discountAmount = discountValue;
-    }
-
+    let discountAmount = discountType === 'percentage' ? subtotal * discountValue / 100 : discountValue;
     const taxableAmount = subtotal - discountAmount;
 
     for (const item of lineItems) {
@@ -489,61 +388,40 @@ TE.Billing = (function () {
       const proportion = taxableAmount > 0 ? lineVal / subtotal : 0;
       const lineTaxable = taxableAmount * proportion;
       const tax = lineTaxable * item.gst_rate / 100;
-      if (intra) {
-        cgst += tax / 2;
-        sgst += tax / 2;
-      } else {
-        igst += tax;
-      }
-      totalTax += tax;
+      if (intra) { cgst += tax / 2; sgst += tax / 2; }
+      else { igst += tax; }
     }
 
+    const totalTax = cgst + sgst + igst;
+    const r = (n) => Math.round(n * 100) / 100;
     return {
-      subtotal: Math.round(subtotal * 100) / 100,
-      discountAmount: Math.round(discountAmount * 100) / 100,
-      taxableAmount: Math.round(taxableAmount * 100) / 100,
-      cgst: Math.round(cgst * 100) / 100,
-      sgst: Math.round(sgst * 100) / 100,
-      igst: Math.round(igst * 100) / 100,
-      totalTax: Math.round(totalTax * 100) / 100,
-      grandTotal: Math.round((taxableAmount + totalTax) * 100) / 100,
+      subtotal: r(subtotal), discountAmount: r(discountAmount), taxableAmount: r(taxableAmount),
+      cgst: r(cgst), sgst: r(sgst), igst: r(igst), totalTax: r(totalTax), grandTotal: r(taxableAmount + totalTax),
     };
   }
 
   async function saveBill(status, container, businessStateCode) {
+    const tr = TE.Lang.t;
     paymentMode = document.getElementById('billPayment')?.value || paymentMode;
     notes = document.getElementById('billNotes')?.value || notes;
 
-    if (!selectedCustomer) { toast('Please select a customer', 'error'); return; }
-    if (lineItems.length === 0) { toast('Please add at least one item', 'error'); return; }
+    if (!selectedCustomer) { toast(tr('select_customer_first'), 'error'); return; }
+    if (lineItems.length === 0) { toast(tr('add_items_first'), 'error'); return; }
 
     const totals = calculateTotals(businessStateCode);
     const intra = isIntraState(businessStateCode);
 
     const header = {
-      invoice_number: invoiceNumber,
-      invoice_date: invoiceDate,
-      customer_id: selectedCustomer.customer_id,
-      customer_name: selectedCustomer.customer_name,
-      customer_gstin: selectedCustomer.gstin || '',
-      customer_address: selectedCustomer.billing_address || '',
-      customer_state: selectedCustomer.state || '',
-      customer_state_code: selectedCustomer.state_code || '',
-      subtotal: totals.subtotal,
-      discount_type: discountType,
-      discount_value: discountValue,
-      discount_amount: totals.discountAmount,
-      taxable_amount: totals.taxableAmount,
-      cgst_amount: totals.cgst,
-      sgst_amount: totals.sgst,
-      igst_amount: totals.igst,
-      total_tax: totals.totalTax,
-      total_amount: totals.grandTotal,
-      payment_mode: paymentMode,
-      notes: notes,
-      status: status,
-      is_intra_state: intra,
-      created_at: new Date().toISOString(),
+      invoice_number: invoiceNumber, invoice_date: invoiceDate,
+      customer_id: selectedCustomer.customer_id, customer_name: selectedCustomer.customer_name,
+      customer_gstin: selectedCustomer.gstin || '', customer_address: selectedCustomer.billing_address || '',
+      customer_state: selectedCustomer.state || '', customer_state_code: selectedCustomer.state_code || '',
+      subtotal: totals.subtotal, discount_type: discountType, discount_value: discountValue,
+      discount_amount: totals.discountAmount, taxable_amount: totals.taxableAmount,
+      cgst_amount: totals.cgst, sgst_amount: totals.sgst, igst_amount: totals.igst,
+      total_tax: totals.totalTax, total_amount: totals.grandTotal,
+      payment_mode: paymentMode, notes: notes, status: status,
+      is_intra_state: intra, created_at: new Date().toISOString(),
     };
 
     const details = lineItems.map((item, idx) => {
@@ -552,18 +430,10 @@ TE.Billing = (function () {
       const lineTaxable = totals.taxableAmount * proportion;
       const tax = lineTaxable * item.gst_rate / 100;
       return {
-        id: item.id,
-        invoice_number: invoiceNumber,
-        sr_no: idx + 1,
-        sku_code: item.sku_code,
-        product_name: item.product_name,
-        hsn_code: item.hsn_code,
-        quantity: item.quantity,
-        unit: item.unit,
-        rate: item.rate,
-        discount: item.discount,
-        taxable_value: Math.round(lineTaxable * 100) / 100,
-        gst_rate: item.gst_rate,
+        id: item.id, invoice_number: invoiceNumber, sr_no: idx + 1,
+        sku_code: item.sku_code, product_name: item.product_name, hsn_code: item.hsn_code,
+        quantity: item.quantity, unit: item.unit, rate: item.rate, discount: item.discount,
+        taxable_value: Math.round(lineTaxable * 100) / 100, gst_rate: item.gst_rate,
         cgst_amount: intra ? Math.round(tax / 2 * 100) / 100 : 0,
         sgst_amount: intra ? Math.round(tax / 2 * 100) / 100 : 0,
         igst_amount: intra ? 0 : Math.round(tax * 100) / 100,
@@ -572,19 +442,13 @@ TE.Billing = (function () {
     });
 
     await TE.Store.put('sales_header', header);
-    for (const d of details) {
-      await TE.Store.put('sales_details', d);
-    }
+    for (const d of details) await TE.Store.put('sales_details', d);
 
     if (status === 'posted') {
       for (const item of lineItems) {
         await TE.Store.addStockEntry({
-          date: invoiceDate,
-          sku_code: item.sku_code,
-          type: 'sale',
-          reference_number: invoiceNumber,
-          quantity_in: 0,
-          quantity_out: item.quantity,
+          date: invoiceDate, sku_code: item.sku_code, type: 'sale',
+          reference_number: invoiceNumber, quantity_in: 0, quantity_out: item.quantity,
           notes: `Sale to ${selectedCustomer.customer_name}`,
         });
       }
@@ -592,10 +456,10 @@ TE.Billing = (function () {
     }
 
     if (status === 'posted') {
-      toast('Invoice posted successfully!', 'success');
+      toast(tr('invoice_posted'), 'success');
       TE.PDF.generateInvoice(header, details);
     } else {
-      toast('Draft saved', 'info');
+      toast(tr('draft_saved'), 'info');
     }
 
     reset();
@@ -610,21 +474,11 @@ TE.Billing = (function () {
     discountValue = inv.discount_value || 0;
     paymentMode = inv.payment_mode || 'Cash';
     notes = inv.notes || '';
-
     selectedCustomer = await TE.Store.get('customers', inv.customer_id);
-
     const details = await TE.Store.getByIndex('sales_details', 'invoice_number', inv.invoice_number);
     lineItems = details.map(d => ({
-      id: d.id,
-      sku_code: d.sku_code,
-      product_name: d.product_name,
-      hsn_code: d.hsn_code,
-      quantity: d.quantity,
-      unit: d.unit,
-      rate: d.rate,
-      mrp: 0,
-      gst_rate: d.gst_rate,
-      discount: d.discount || 0,
+      id: d.id, sku_code: d.sku_code, product_name: d.product_name, hsn_code: d.hsn_code,
+      quantity: d.quantity, unit: d.unit, rate: d.rate, mrp: 0, gst_rate: d.gst_rate, discount: d.discount || 0,
     }));
   }
 
