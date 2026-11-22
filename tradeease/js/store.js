@@ -194,6 +194,9 @@ TE.Store = (function () {
     await setSetting('business_account_number', '12345678901234');
     await setSetting('business_ifsc', 'SBIN0001234');
     await setSetting('business_upi', 'tradeease@upi');
+    await setSetting('payment_discount_master', {
+      Cash: 10, UPI: 5, 'Bank Transfer': 0, Credit: 0, Cheque: 0
+    });
   }
 
   return {

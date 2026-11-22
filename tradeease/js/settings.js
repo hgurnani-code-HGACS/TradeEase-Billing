@@ -52,6 +52,8 @@ TE.Settings = (function () {
     card.appendChild(body);
     container.appendChild(card);
 
+    await renderDiscountCard(container);
+
     await renderSyncCard(container);
 
     const dangerCard = el('div', { className: 'card', style: { maxWidth: '700px', marginTop: '20px' } });
@@ -68,6 +70,42 @@ TE.Settings = (function () {
 
     document.getElementById('exportDataBtn')?.addEventListener('click', exportData);
     document.getElementById('importDataBtn')?.addEventListener('click', importData);
+  }
+
+  async function renderDiscountCard(container) {
+    const t = TE.Lang.t;
+    const payModes = ['Cash', 'UPI', 'Bank Transfer', 'Credit', 'Cheque'];
+    const payKeys = ['cash', 'upi', 'bank_transfer', 'credit', 'cheque'];
+    const master = (await TE.Store.getSetting('payment_discount_master')) || {};
+
+    const dCard = el('div', { className: 'card', style: { maxWidth: '700px', marginTop: '20px' } });
+    dCard.innerHTML = `<div class="card-header"><h3>${t('payment_discount_config')}</h3></div>`;
+    const dBody = el('div', { className: 'card-body' });
+    dBody.innerHTML = `<p class="text-sm text-secondary mb-16">${t('payment_discount_hint')}</p>`;
+
+    const tbl = el('table');
+    tbl.innerHTML = `<thead><tr><th>${t('payment_mode')}</th><th class="text-right">${t('default_discount_pct')}</th></tr></thead>`;
+    const tbody = el('tbody');
+    payModes.forEach((mode, i) => {
+      const tr = el('tr');
+      const val = master[mode] !== undefined ? master[mode] : 0;
+      tr.innerHTML = `<td>${t(payKeys[i])}</td><td class="text-right"><input type="number" class="form-input" data-pay-mode="${mode}" value="${val}" min="0" max="100" step="0.5" style="width:80px;display:inline-block;text-align:right"></td>`;
+      tbody.appendChild(tr);
+    });
+    tbl.appendChild(tbody);
+    dBody.appendChild(el('div', { className: 'table-wrap mb-16' }, [tbl]));
+
+    const saveBtn = el('button', { className: 'btn btn-primary', onClick: async () => {
+      const inputs = dBody.querySelectorAll('[data-pay-mode]');
+      const newMaster = {};
+      inputs.forEach(inp => { newMaster[inp.dataset.payMode] = Number(inp.value) || 0; });
+      await TE.Store.setSetting('payment_discount_master', newMaster);
+      toast(t('discount_config_saved'), 'success');
+    }}, t('save_discount_config'));
+    dBody.appendChild(el('div', { className: 'mt-16' }, [saveBtn]));
+
+    dCard.appendChild(dBody);
+    container.appendChild(dCard);
   }
 
   async function renderSyncCard(container) {

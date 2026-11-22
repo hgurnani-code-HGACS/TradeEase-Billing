@@ -132,6 +132,19 @@ TE.Lang = (function () {
       // Settings
       business_settings: 'Business Settings',
 
+      // Payment Discount Master
+      payment_discount_config: 'Payment Discount Configuration',
+      payment_discount_hint: 'Set default discount % for each payment mode. Auto-applies when payment mode is selected during billing.',
+      default_discount_pct: 'Default Discount %',
+      save_discount_config: 'Save Discount Config',
+      discount_config_saved: 'Discount configuration saved',
+
+      // Invoice History KPIs
+      sold: 'Sold',
+      avg_rate: 'Avg Rate',
+      showing_invoices_for: 'Showing invoices for',
+      clear_filter: 'Clear Filter',
+
       // General
       save: 'Save',
       cancel: 'Cancel',
@@ -270,6 +283,19 @@ TE.Lang = (function () {
 
       // Settings
       business_settings: 'व्यवसाय सेटिंग्स',
+
+      // Payment Discount Master
+      payment_discount_config: 'भुगतान छूट कॉन्फ़िगरेशन',
+      payment_discount_hint: 'प्रत्येक भुगतान मोड के लिए डिफ़ॉल्ट छूट % सेट करें। बिलिंग में भुगतान मोड चुनने पर स्वत: लागू होता है।',
+      default_discount_pct: 'डिफ़ॉल्ट छूट %',
+      save_discount_config: 'छूट कॉन्फ़िग सहेजें',
+      discount_config_saved: 'छूट कॉन्फ़िगरेशन सहेजा गया',
+
+      // Invoice History KPIs
+      sold: 'बिक्री',
+      avg_rate: 'औसत दर',
+      showing_invoices_for: 'के लिए बिल दिखा रहे हैं',
+      clear_filter: 'फ़िल्टर हटाएं',
 
       // General
       save: 'सहेजें',

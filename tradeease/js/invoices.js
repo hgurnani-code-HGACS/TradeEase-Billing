@@ -1,10 +1,43 @@
 TE.Invoices = (function () {
   const { el, currency, dateStr, toast, modal, confirm } = TE.Utils;
 
+  let selectedCategory = null;
+  let selectedProduct = null;
+  let productSearchQuery = '';
+
   async function render(container) {
     const t = TE.Lang.t;
     const invoices = await TE.Store.getAll('sales_header');
     invoices.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+
+    const allDetails = await TE.Store.getAll('sales_details');
+    const products = await TE.Store.getAll('products');
+    const activeProducts = products.filter(p => p.status === 'active');
+    const categories = await TE.Store.getAll('categories');
+
+    const postedInvoices = invoices.filter(inv => inv.status === 'posted');
+    const postedSet = new Set(postedInvoices.map(inv => inv.invoice_number));
+    const invoiceMap = {};
+    for (const inv of invoices) invoiceMap[inv.invoice_number] = inv;
+
+    const productKPIs = {};
+    for (const p of activeProducts) {
+      const stock = await TE.Store.getStockBalance(p.sku_code);
+      const details = allDetails.filter(d => d.sku_code === p.sku_code && postedSet.has(d.invoice_number));
+      const totalSold = details.reduce((sum, d) => sum + (d.quantity || 0), 0);
+
+      const withDate = details.map(d => ({ rate: d.rate || 0, inv: d.invoice_number, date: invoiceMap[d.invoice_number]?.created_at || '' }));
+      withDate.sort((a, b) => b.date.localeCompare(a.date));
+      const seen = new Set();
+      const last5 = [];
+      for (const d of withDate) {
+        if (seen.size >= 5) break;
+        if (!seen.has(d.inv)) { seen.add(d.inv); last5.push(d); }
+      }
+      const avgRate = last5.length > 0 ? last5.reduce((s, d) => s + d.rate, 0) / last5.length : 0;
+
+      productKPIs[p.sku_code] = { stock, totalSold, avgRate };
+    }
 
     container.innerHTML = '';
 
@@ -14,12 +47,112 @@ TE.Invoices = (function () {
     ]);
     container.appendChild(header);
 
+    // Category strip
+    const catStrip = el('div', { className: 'pos-categories' });
+    const allBtn = el('button', {
+      className: 'pos-cat-btn' + (selectedCategory === null ? ' active' : ''),
+      onClick: () => { selectedCategory = null; selectedProduct = null; render(container); }
+    }, t('all_products'));
+    catStrip.appendChild(allBtn);
+    categories.forEach(cat => {
+      const btn = el('button', {
+        className: 'pos-cat-btn' + (selectedCategory === cat.id ? ' active' : ''),
+        onClick: () => { selectedCategory = cat.id; selectedProduct = null; render(container); }
+      }, cat.name);
+      catStrip.appendChild(btn);
+    });
+    container.appendChild(catStrip);
+
+    // Product search
+    const searchDiv = el('div', { className: 'pos-search', style: { marginBottom: '8px' } });
+    const prodSearchInput = el('input', { type: 'text', placeholder: t('search_products'), value: productSearchQuery });
+    prodSearchInput.addEventListener('input', () => {
+      productSearchQuery = prodSearchInput.value;
+      renderProductGrid();
+    });
+    searchDiv.appendChild(prodSearchInput);
+    container.appendChild(searchDiv);
+
+    // Product grid
+    const gridDiv = el('div', { className: 'pos-product-grid', style: { maxHeight: '340px', flex: 'none' } });
+    container.appendChild(gridDiv);
+
+    function renderProductGrid() {
+      gridDiv.innerHTML = '';
+      let filtered = activeProducts;
+      if (selectedCategory) filtered = filtered.filter(p => p.category === selectedCategory);
+      if (productSearchQuery.trim()) {
+        const words = productSearchQuery.trim().toLowerCase().split(/\s+/);
+        filtered = filtered.filter(p => {
+          const searchable = (p.sku_code + ' ' + p.product_name).toLowerCase();
+          return words.every(w => searchable.includes(w));
+        });
+      }
+      if (filtered.length === 0) {
+        gridDiv.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><p>${t('no_products_in_category')}</p></div>`;
+        return;
+      }
+      filtered.forEach(p => {
+        const kpi = productKPIs[p.sku_code] || { stock: 0, totalSold: 0, avgRate: 0 };
+        const isSelected = selectedProduct === p.sku_code;
+        const card = el('div', { className: 'pos-product-card' + (isSelected ? ' selected' : '') });
+        card.addEventListener('click', () => {
+          selectedProduct = selectedProduct === p.sku_code ? null : p.sku_code;
+          renderProductGrid();
+          renderInvoiceTable();
+        });
+
+        const stockClass = kpi.stock <= 0 ? 'no-stock' : (kpi.stock <= (p.min_stock_level || 0) ? 'low-stock' : 'in-stock');
+        const stockLabel = kpi.stock <= 0 ? t('out_of_stock') : `${t('stock')}: ${kpi.stock}`;
+
+        card.innerHTML = `
+          <div class="prod-name">${p.product_name}</div>
+          <div class="prod-sku">${p.sku_code}</div>
+          <span class="prod-stock ${stockClass}">${stockLabel}</span>
+          <div class="prod-kpi">${t('sold')}: ${kpi.totalSold}</div>
+          <div class="prod-kpi">${t('avg_rate')}: ${currency(kpi.avgRate)}</div>`;
+        gridDiv.appendChild(card);
+      });
+    }
+
+    renderProductGrid();
+
+    // Filter indicator
+    const filterBar = el('div', { id: 'invoiceFilterBar', style: { margin: '12px 0' } });
+    container.appendChild(filterBar);
+
+    // Invoice table
     const card = el('div', { className: 'card' });
     const tableWrap = el('div', { className: 'card-body no-pad table-wrap' });
+    card.appendChild(tableWrap);
+    container.appendChild(card);
 
-    if (invoices.length === 0) {
-      tableWrap.innerHTML = `<div class="empty-state"><p>${t('no_invoices_yet')}</p></div>`;
-    } else {
+    function renderInvoiceTable() {
+      filterBar.innerHTML = '';
+      let filteredInvoices = invoices;
+
+      if (selectedProduct) {
+        const matchingInvNos = new Set(allDetails.filter(d => d.sku_code === selectedProduct).map(d => d.invoice_number));
+        filteredInvoices = invoices.filter(inv => matchingInvNos.has(inv.invoice_number));
+        const prodName = activeProducts.find(p => p.sku_code === selectedProduct)?.product_name || selectedProduct;
+
+        const badge = el('div', { style: 'display:inline-flex;align-items:center;gap:8px;padding:6px 12px;background:rgba(59,130,246,.08);border:1px solid var(--primary);border-radius:var(--radius);font-size:.85rem;color:var(--primary)' });
+        badge.innerHTML = `<strong>${t('showing_invoices_for')}:</strong> ${prodName} (${filteredInvoices.length})`;
+        const clearBtn = el('button', { className: 'btn btn-ghost btn-sm', style: 'padding:2px 8px;font-size:.78rem', onClick: () => { selectedProduct = null; renderProductGrid(); renderInvoiceTable(); } }, '✕ ' + t('clear_filter'));
+        badge.appendChild(clearBtn);
+        filterBar.appendChild(badge);
+      }
+
+      const headerH3 = container.querySelector('.section-title');
+      headerH3.textContent = `${t('invoice_history')} (${filteredInvoices.length})`;
+
+      tableWrap.innerHTML = '';
+
+      if (filteredInvoices.length === 0) {
+        tableWrap.innerHTML = `<div class="empty-state"><p>${t('no_invoices_yet')}</p></div>`;
+        return;
+      }
+
       const tbl = el('table');
       tbl.innerHTML = `<thead><tr>
         <th>${t('invoice_number')}</th><th>${t('invoice_date')}</th><th>${t('customer')}</th><th>${t('payment_mode')}</th>
@@ -27,7 +160,7 @@ TE.Invoices = (function () {
       </tr></thead>`;
       const tbody = el('tbody');
 
-      for (const inv of invoices) {
+      for (const inv of filteredInvoices) {
         const tr = el('tr');
         const statusBadge = inv.status === 'posted'
           ? '<span class="badge badge-success">Posted</span>'
@@ -63,8 +196,7 @@ TE.Invoices = (function () {
       tableWrap.appendChild(tbl);
     }
 
-    card.appendChild(tableWrap);
-    container.appendChild(card);
+    renderInvoiceTable();
   }
 
   async function viewInvoice(inv) {

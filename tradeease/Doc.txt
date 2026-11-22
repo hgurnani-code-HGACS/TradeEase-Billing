@@ -5,3 +5,15 @@ https://script.google.com/macros/s/AKfycbyiaNr3RrlgozoxSl6ezmPtVOGdXUV-TE9PuzDEq
 https://script.google.com/macros/s/AKfycbyiaNr3RrlgozoxSl6ezmPtVOGdXUV-TE9PuzDEqJYK5snqRHZ66Ke_EulhoFiAJ-Q/exec?action=ping
 
 https://script.google.com/macros/s/AKfycbwE_RzhHV-lmvmIAK8Kzmi3beUyDZq6ypXNYYUnY7M/dev
+
+https://script.google.com/macros/s/AKfycbwFZzo1KhOP8FlccQpwaHtaqIjbdnPWz9VrYuxDEUrqjq7RUUvmovw5Ej30RFcWZzpw/exec
+
+https://script.google.com/macros/s/AKfycbwicXrIH3-EVbpfiJ31DRQ7wgunV9z3grrVr3akTNqgo0yNskkPBSJPgmu_vaJ6PT1k/exec
+
+
+http://localhost:8080/#settings
+
+https://script.google.com/macros/s/AKfycbyOdyucFxOL22uVy5wxRaWV9C_1VopOE1bIMc9wPF1_RoNofvywJmotCcQsg_ilYAzm/exec
+
+https://hgurnani-code-hgacs.github.io/TradeEase-Billing/
+https://tradeease-billing.autocomplys.com

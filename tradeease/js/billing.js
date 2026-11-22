@@ -37,6 +37,12 @@ TE.Billing = (function () {
     } else if (!sessionActive) {
       reset();
       invoiceNumber = await TE.Store.getNextInvoiceNumber();
+      const initMaster = (await TE.Store.getSetting('payment_discount_master')) || {};
+      const initDisc = initMaster[paymentMode];
+      if (initDisc !== undefined && initDisc > 0) {
+        discountType = 'percentage';
+        discountValue = initDisc;
+      }
       sessionActive = true;
     }
 
@@ -45,6 +51,7 @@ TE.Billing = (function () {
     const customers = await TE.Store.getAll('customers');
     const categories = await TE.Store.getAll('categories');
     const businessState = await TE.Store.getSetting('business_state_code') || '24';
+    const paymentDiscountMaster = (await TE.Store.getSetting('payment_discount_master')) || {};
     const stockBalances = {};
     for (const p of activeProducts) {
       stockBalances[p.sku_code] = await TE.Store.getStockBalance(p.sku_code);
@@ -322,7 +329,18 @@ TE.Billing = (function () {
         </div>`;
       cartFooter.appendChild(extraRow);
 
-      document.getElementById('billPayment')?.addEventListener('change', (e) => { paymentMode = e.target.value; });
+      document.getElementById('billPayment')?.addEventListener('change', (e) => {
+        paymentMode = e.target.value;
+        const masterDisc = paymentDiscountMaster[paymentMode];
+        if (masterDisc !== undefined && masterDisc > 0) {
+          discountType = 'percentage';
+          discountValue = masterDisc;
+        } else {
+          discountType = 'percentage';
+          discountValue = 0;
+        }
+        renderCart();
+      });
       document.getElementById('billDiscType')?.addEventListener('change', (e) => { discountType = e.target.value; renderCart(); });
       document.getElementById('billDiscVal')?.addEventListener('change', (e) => { discountValue = Number(e.target.value) || 0; renderCart(); });
 
