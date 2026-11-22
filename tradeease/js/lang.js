@@ -132,6 +132,10 @@ TE.Lang = (function () {
       // Settings
       business_settings: 'Business Settings',
 
+      // Invoice Title
+      invoice_title: 'Invoice Title',
+      invoice_title_hint: 'Appears as the heading on printed invoices (e.g. Quotation, Tax Invoice)',
+
       // Payment Discount Master
       payment_discount_config: 'Payment Discount Configuration',
       payment_discount_hint: 'Set default discount % for each payment mode. Auto-applies when payment mode is selected during billing.',
@@ -283,6 +287,10 @@ TE.Lang = (function () {
 
       // Settings
       business_settings: 'व्यवसाय सेटिंग्स',
+
+      // Invoice Title
+      invoice_title: 'बिल शीर्षक',
+      invoice_title_hint: 'प्रिंटेड बिल पर शीर्षक के रूप में दिखाई देता है (जैसे कोटेशन, टैक्स इनवॉइस)',
 
       // Payment Discount Master
       payment_discount_config: 'भुगतान छूट कॉन्फ़िगरेशन',

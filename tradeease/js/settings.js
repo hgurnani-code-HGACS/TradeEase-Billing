@@ -16,6 +16,7 @@ TE.Settings = (function () {
       { key: 'business_account_number', label: 'Account Number', type: 'text' },
       { key: 'business_ifsc', label: 'IFSC Code', type: 'text' },
       { key: 'business_upi', label: 'UPI ID', type: 'text' },
+      { key: 'invoice_title', label: 'Invoice Title (e.g. Quotation, Tax Invoice)', type: 'text' },
       { key: 'invoice_prefix', label: 'Invoice Prefix', type: 'text' },
       { key: 'next_invoice_number', label: 'Next Invoice Number', type: 'number' },
     ];

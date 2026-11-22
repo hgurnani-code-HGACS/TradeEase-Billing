@@ -181,6 +181,7 @@ TE.Store = (function () {
     ];
     for (const c of sampleCustomers) await put('customers', c);
 
+    await setSetting('invoice_title', 'Quotation');
     await setSetting('invoice_prefix', 'INV');
     await setSetting('next_invoice_number', 1);
     await setSetting('business_name', 'TradeEase FMCG Trading');
