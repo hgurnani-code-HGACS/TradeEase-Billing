@@ -73,20 +73,18 @@ TE.Billing = (function () {
       const searchWrap = el('div', { className: 'customer-search-wrap mb-8' });
       const searchInput = el('input', { type: 'text', className: 'form-input', placeholder: 'Search by name, mobile or ID...' });
       const dropdown = el('div', { className: 'customer-dropdown', style: { display: 'none' } });
+      let custHighlight = -1;
+      let custMatches = [];
 
-      searchInput.addEventListener('input', debounce(() => {
-        const q = searchInput.value.toLowerCase();
-        if (q.length < 1) { dropdown.style.display = 'none'; return; }
-        const matches = customers.filter(c =>
-          c.customer_name.toLowerCase().includes(q) ||
-          (c.mobile || '').includes(q) ||
-          c.customer_id.toLowerCase().includes(q)
-        ).slice(0, 8);
+      function renderCustDropdown() {
         dropdown.innerHTML = '';
-        if (matches.length === 0) {
-          dropdown.innerHTML = '<div style="padding:10px;color:var(--text-muted);font-size:.85rem">No matches</div>';
+        custHighlight = -1;
+        if (custMatches.length === 0) {
+          dropdown.innerHTML = '<div style="padding:12px 14px;color:var(--text-muted);font-size:.85rem">No matches found</div>';
+          dropdown.style.display = 'block';
+          return;
         }
-        matches.forEach(c => {
+        custMatches.forEach((c, i) => {
           const item = el('div', { className: 'customer-dropdown-item' });
           item.addEventListener('mousedown', (e) => {
             e.preventDefault();
@@ -97,9 +95,47 @@ TE.Billing = (function () {
           dropdown.appendChild(item);
         });
         dropdown.style.display = 'block';
+      }
+
+      function setCustHighlight(idx) {
+        const items = dropdown.querySelectorAll('.customer-dropdown-item');
+        items.forEach(it => it.classList.remove('highlighted'));
+        custHighlight = idx;
+        if (idx >= 0 && idx < items.length) {
+          items[idx].classList.add('highlighted');
+          items[idx].scrollIntoView({ block: 'nearest' });
+        }
+      }
+
+      searchInput.addEventListener('input', debounce(() => {
+        const q = searchInput.value.toLowerCase();
+        if (q.length < 1) { dropdown.style.display = 'none'; custMatches = []; return; }
+        custMatches = customers.filter(c =>
+          c.customer_name.toLowerCase().includes(q) ||
+          (c.mobile || '').includes(q) ||
+          c.customer_id.toLowerCase().includes(q)
+        ).slice(0, 8);
+        renderCustDropdown();
       }, 150));
 
-      searchInput.addEventListener('blur', () => { setTimeout(() => dropdown.style.display = 'none', 150); });
+      searchInput.addEventListener('keydown', (e) => {
+        if (dropdown.style.display === 'none' || custMatches.length === 0) return;
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          setCustHighlight(Math.min(custHighlight + 1, custMatches.length - 1));
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          setCustHighlight(Math.max(custHighlight - 1, 0));
+        } else if (e.key === 'Enter' && custHighlight >= 0) {
+          e.preventDefault();
+          selectedCustomer = custMatches[custHighlight];
+          render(container);
+        } else if (e.key === 'Escape') {
+          dropdown.style.display = 'none';
+        }
+      });
+
+      searchInput.addEventListener('blur', () => { setTimeout(() => dropdown.style.display = 'none', 200); });
       searchWrap.appendChild(searchInput);
       searchWrap.appendChild(dropdown);
       rightCol.appendChild(searchWrap);
@@ -148,16 +184,28 @@ TE.Billing = (function () {
     const addLineWrap = el('div', { className: 'sku-search', style: { maxWidth: '400px' } });
     const skuInput = el('input', { type: 'text', placeholder: 'Type SKU or product name to add...', style: { padding: '8px 12px', width: '100%' } });
     const skuDrop = el('div', { className: 'sku-dropdown', style: { display: 'none' } });
+    let skuHighlight = -1;
+    let skuMatches = [];
 
-    skuInput.addEventListener('input', debounce(() => {
-      const q = skuInput.value.toLowerCase();
-      if (q.length < 1) { skuDrop.style.display = 'none'; return; }
-      const matches = activeProducts.filter(p =>
-        p.sku_code.toLowerCase().includes(q) ||
-        p.product_name.toLowerCase().includes(q)
-      ).slice(0, 10);
+    function positionSkuDrop() {
+      const rect = skuInput.getBoundingClientRect();
+      skuDrop.style.top = rect.bottom + 2 + 'px';
+      skuDrop.style.left = rect.left + 'px';
+      skuDrop.style.width = Math.max(rect.width, 320) + 'px';
+    }
+
+    function renderSkuDropdown() {
       skuDrop.innerHTML = '';
-      matches.forEach(p => {
+      skuHighlight = -1;
+      if (skuMatches.length === 0) {
+        const noRes = el('div', { className: 'sku-no-results' });
+        noRes.textContent = 'No products found';
+        skuDrop.appendChild(noRes);
+        positionSkuDrop();
+        skuDrop.style.display = 'block';
+        return;
+      }
+      skuMatches.forEach((p, i) => {
         const item = el('div', { className: 'sku-dropdown-item' });
         item.addEventListener('mousedown', (e) => {
           e.preventDefault();
@@ -169,21 +217,62 @@ TE.Billing = (function () {
         item.innerHTML = `<div class="sku-name">${p.product_name}</div><div class="sku-meta">${p.sku_code} | ${currency(p.selling_price)} | GST ${p.gst_rate}%</div>`;
         skuDrop.appendChild(item);
       });
-      skuDrop.style.display = matches.length ? 'block' : 'none';
+      positionSkuDrop();
+      skuDrop.style.display = 'block';
+    }
+
+    function setSkuHighlight(idx) {
+      const items = skuDrop.querySelectorAll('.sku-dropdown-item');
+      items.forEach(it => it.classList.remove('highlighted'));
+      skuHighlight = idx;
+      if (idx >= 0 && idx < items.length) {
+        items[idx].classList.add('highlighted');
+        items[idx].scrollIntoView({ block: 'nearest' });
+      }
+    }
+
+    skuInput.addEventListener('input', debounce(() => {
+      const q = skuInput.value.toLowerCase();
+      if (q.length < 1) { skuDrop.style.display = 'none'; skuMatches = []; return; }
+      skuMatches = activeProducts.filter(p =>
+        p.sku_code.toLowerCase().includes(q) ||
+        p.product_name.toLowerCase().includes(q)
+      ).slice(0, 10);
+      renderSkuDropdown();
     }, 150));
 
-    skuInput.addEventListener('blur', () => { setTimeout(() => skuDrop.style.display = 'none', 150); });
     skuInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        const q = skuInput.value.trim().toUpperCase();
-        const exact = activeProducts.find(p => p.sku_code === q);
-        if (exact) {
-          addLineItem(exact);
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (skuDrop.style.display === 'none' && skuMatches.length > 0) renderSkuDropdown();
+        else setSkuHighlight(Math.min(skuHighlight + 1, skuMatches.length - 1));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSkuHighlight(Math.max(skuHighlight - 1, 0));
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        let product = null;
+        if (skuHighlight >= 0 && skuHighlight < skuMatches.length) {
+          product = skuMatches[skuHighlight];
+        } else {
+          const q = skuInput.value.trim().toUpperCase();
+          product = activeProducts.find(p => p.sku_code === q);
+        }
+        if (product) {
+          addLineItem(product);
           skuInput.value = '';
           skuDrop.style.display = 'none';
+          skuMatches = [];
           render(container);
         }
+      } else if (e.key === 'Escape') {
+        skuDrop.style.display = 'none';
       }
+    });
+
+    skuInput.addEventListener('blur', () => { setTimeout(() => skuDrop.style.display = 'none', 200); });
+    skuInput.addEventListener('focus', () => {
+      if (skuInput.value.length >= 1 && skuMatches.length > 0) renderSkuDropdown();
     });
 
     addLineWrap.appendChild(skuInput);

@@ -377,30 +377,34 @@ td { font-size: .88rem; }
   position: relative;
 }
 .billing-items-table .sku-dropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
+  position: fixed;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
-  max-height: 200px;
+  border-radius: var(--radius-sm);
+  max-height: 260px;
   overflow-y: auto;
-  z-index: 20;
+  z-index: 100;
   box-shadow: var(--shadow-lg);
+  min-width: 320px;
 }
 .billing-items-table .sku-dropdown-item {
-  padding: 8px 12px;
+  padding: 10px 14px;
   cursor: pointer;
   font-size: .85rem;
   border-bottom: 1px solid var(--border);
 }
+.billing-items-table .sku-dropdown-item:last-child { border-bottom: none; }
 .billing-items-table .sku-dropdown-item:hover,
 .billing-items-table .sku-dropdown-item.highlighted {
   background: var(--primary-lighter);
 }
 .billing-items-table .sku-dropdown-item .sku-name { font-weight: 500; }
 .billing-items-table .sku-dropdown-item .sku-meta { font-size: .78rem; color: var(--text-secondary); }
+.billing-items-table .sku-no-results {
+  padding: 12px 14px;
+  font-size: .85rem;
+  color: var(--text-muted);
+}
 
 .billing-totals {
   display: flex;
@@ -440,17 +444,19 @@ td { font-size: .88rem; }
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 0 0 var(--radius-sm) var(--radius-sm);
-  max-height: 200px;
+  max-height: 260px;
   overflow-y: auto;
-  z-index: 20;
+  z-index: 100;
   box-shadow: var(--shadow-lg);
 }
 .customer-dropdown-item {
-  padding: 8px 12px;
+  padding: 10px 14px;
   cursor: pointer;
   border-bottom: 1px solid var(--border);
 }
-.customer-dropdown-item:hover { background: var(--primary-lighter); }
+.customer-dropdown-item:last-child { border-bottom: none; }
+.customer-dropdown-item:hover,
+.customer-dropdown-item.highlighted { background: var(--primary-lighter); }
 .customer-dropdown-item .cust-name { font-weight: 500; font-size: .88rem; }
 .customer-dropdown-item .cust-meta { font-size: .78rem; color: var(--text-secondary); }
 
