@@ -1,5 +1,5 @@
 TE.PDF = (function () {
-  const cur = (n) => '₹' + n.toFixed(2);
+  const cur = (n) => 'Rs. ' + n.toFixed(2);
 
   async function generateInvoice(header, details) {
     const { jsPDF } = window.jspdf;
@@ -83,11 +83,11 @@ TE.PDF = (function () {
     // --- Items table ---
     const isIntra = header.is_intra_state !== false;
 
-    const tableHead = [['#', 'Product', 'HSN', 'Qty', 'Rate (₹)', 'Tax. (₹)']];
+    const tableHead = [['#', 'Product', 'HSN', 'Qty', 'Rate (Rs.)', 'Taxable']];
     if (isIntra) {
-      tableHead[0].push('CGST', 'SGST', 'Total (₹)');
+      tableHead[0].push('CGST', 'SGST', 'Total (Rs.)');
     } else {
-      tableHead[0].push('IGST', 'Total (₹)');
+      tableHead[0].push('IGST', 'Total (Rs.)');
     }
 
     const tableBody = details.map((d, i) => {
@@ -96,13 +96,13 @@ TE.PDF = (function () {
         d.product_name,
         d.hsn_code || '',
         d.quantity,
-        cur(d.rate),
-        cur(d.taxable_value),
+        d.rate.toFixed(2),
+        d.taxable_value.toFixed(2),
       ];
       if (isIntra) {
-        row.push(cur(d.cgst_amount), cur(d.sgst_amount), cur(d.line_total));
+        row.push(d.cgst_amount.toFixed(2), d.sgst_amount.toFixed(2), d.line_total.toFixed(2));
       } else {
-        row.push(cur(d.igst_amount), cur(d.line_total));
+        row.push(d.igst_amount.toFixed(2), d.line_total.toFixed(2));
       }
       return row;
     });
@@ -128,40 +128,66 @@ TE.PDF = (function () {
       },
     });
 
-    y = doc.lastAutoTable.finalY + 4;
+    y = doc.lastAutoTable.finalY + 2;
 
-    // --- Totals ---
-    const totW = 60;
-    const totX = pw - m - totW;
-    doc.setFontSize(7);
-
-    function tLine(label, value, bold) {
-      doc.setFont('helvetica', bold ? 'bold' : 'normal');
-      doc.setTextColor(30, 41, 59);
-      doc.text(label, totX, y);
-      doc.text(value, pw - m, y, { align: 'right' });
-      y += 4;
-    }
-
-    tLine('Subtotal', cur(header.subtotal));
+    // --- Totals (using autoTable for perfect alignment) ---
+    const summaryRows = [];
+    summaryRows.push(['Subtotal', cur(header.subtotal)]);
     if (header.discount_amount > 0) {
-      tLine('Discount', '- ' + cur(header.discount_amount));
+      summaryRows.push(['Discount', '- ' + cur(header.discount_amount)]);
     }
-    tLine('Taxable Amount', cur(header.taxable_amount));
+    summaryRows.push(['Taxable Amount', cur(header.taxable_amount)]);
     if (isIntra) {
-      tLine('CGST', cur(header.cgst_amount));
-      tLine('SGST', cur(header.sgst_amount));
+      summaryRows.push(['CGST', cur(header.cgst_amount)]);
+      summaryRows.push(['SGST', cur(header.sgst_amount)]);
     } else {
-      tLine('IGST', cur(header.igst_amount));
+      summaryRows.push(['IGST', cur(header.igst_amount)]);
     }
+
+    const summaryW = 65;
+    const summaryX = pw - m - summaryW;
+
+    doc.autoTable({
+      startY: y,
+      body: summaryRows,
+      margin: { left: summaryX, right: m },
+      theme: 'plain',
+      bodyStyles: { fontSize: 7, cellPadding: { top: 1, bottom: 1, left: 2, right: 2 } },
+      columnStyles: {
+        0: { halign: 'left', cellWidth: summaryW - 28, fontStyle: 'normal' },
+        1: { halign: 'right', cellWidth: 28 },
+      },
+      didParseCell: function (data) {
+        data.cell.styles.textColor = [30, 41, 59];
+      },
+    });
+
+    y = doc.lastAutoTable.finalY;
+
+    // Grand total row with line separator
     doc.setDrawColor(30, 58, 95);
-    doc.line(totX, y - 2, pw - m, y - 2);
+    doc.setLineWidth(0.5);
+    doc.line(summaryX, y, pw - m, y);
     y += 1;
-    doc.setFontSize(9);
-    tLine('Grand Total', cur(header.total_amount), true);
+
+    doc.autoTable({
+      startY: y,
+      body: [['Grand Total', cur(header.total_amount)]],
+      margin: { left: summaryX, right: m },
+      theme: 'plain',
+      bodyStyles: { fontSize: 9, fontStyle: 'bold', cellPadding: { top: 1.5, bottom: 1.5, left: 2, right: 2 } },
+      columnStyles: {
+        0: { halign: 'left', cellWidth: summaryW - 28 },
+        1: { halign: 'right', cellWidth: 28 },
+      },
+      didParseCell: function (data) {
+        data.cell.styles.textColor = [30, 58, 95];
+      },
+    });
+
+    y = doc.lastAutoTable.finalY + 2;
 
     // --- Amount in words ---
-    y += 1;
     doc.setFontSize(6.5);
     doc.setFont('helvetica', 'italic');
     doc.setTextColor(100, 116, 139);
