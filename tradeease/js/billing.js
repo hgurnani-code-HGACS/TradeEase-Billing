@@ -71,10 +71,22 @@ TE.Billing = (function () {
       rightCol.appendChild(bar);
     } else {
       const searchWrap = el('div', { className: 'customer-search-wrap mb-8' });
-      const searchInput = el('input', { type: 'text', className: 'form-input', placeholder: 'Search by name, mobile or ID...' });
+      const searchInput = el('input', { type: 'text', className: 'form-input', placeholder: 'Type customer name or mobile...' });
       const dropdown = el('div', { className: 'customer-dropdown', style: { display: 'none' } });
       let custHighlight = -1;
       let custMatches = [];
+
+      function matchCustomer(c, q) {
+        const searchable = [
+          c.customer_name || '',
+          c.mobile || '',
+          c.customer_id || '',
+          c.gstin || '',
+          c.state || ''
+        ].join(' ').toLowerCase();
+        const words = q.split(/\s+/);
+        return words.every(w => searchable.includes(w));
+      }
 
       function renderCustDropdown() {
         dropdown.innerHTML = '';
@@ -91,10 +103,11 @@ TE.Billing = (function () {
             selectedCustomer = c;
             render(container);
           });
-          item.innerHTML = `<div class="cust-name">${c.customer_name}</div><div class="cust-meta">${c.customer_id} | ${c.mobile || ''} | ${c.gstin || 'No GSTIN'}</div>`;
+          item.innerHTML = `<div class="cust-name">${c.customer_name}</div><div class="cust-meta">${c.customer_id} | ${c.mobile || 'No mobile'} | ${c.gstin || 'No GSTIN'}</div>`;
           dropdown.appendChild(item);
         });
         dropdown.style.display = 'block';
+        setCustHighlight(0);
       }
 
       function setCustHighlight(idx) {
@@ -107,35 +120,42 @@ TE.Billing = (function () {
         }
       }
 
-      searchInput.addEventListener('input', debounce(() => {
-        const q = searchInput.value.toLowerCase();
-        if (q.length < 1) { dropdown.style.display = 'none'; custMatches = []; return; }
-        custMatches = customers.filter(c =>
-          c.customer_name.toLowerCase().includes(q) ||
-          (c.mobile || '').includes(q) ||
-          c.customer_id.toLowerCase().includes(q)
-        ).slice(0, 8);
+      function filterCustomers() {
+        const q = searchInput.value.trim().toLowerCase();
+        if (q.length === 0) {
+          custMatches = customers.slice(0, 10);
+        } else {
+          custMatches = customers.filter(c => matchCustomer(c, q)).slice(0, 10);
+        }
         renderCustDropdown();
-      }, 150));
+      }
+
+      searchInput.addEventListener('input', filterCustomers);
+
+      searchInput.addEventListener('focus', () => {
+        if (dropdown.style.display === 'none') filterCustomers();
+      });
 
       searchInput.addEventListener('keydown', (e) => {
-        if (dropdown.style.display === 'none' || custMatches.length === 0) return;
         if (e.key === 'ArrowDown') {
           e.preventDefault();
-          setCustHighlight(Math.min(custHighlight + 1, custMatches.length - 1));
+          if (dropdown.style.display === 'none') filterCustomers();
+          else setCustHighlight(Math.min(custHighlight + 1, custMatches.length - 1));
         } else if (e.key === 'ArrowUp') {
           e.preventDefault();
           setCustHighlight(Math.max(custHighlight - 1, 0));
-        } else if (e.key === 'Enter' && custHighlight >= 0) {
+        } else if (e.key === 'Enter') {
           e.preventDefault();
-          selectedCustomer = custMatches[custHighlight];
-          render(container);
+          if (custHighlight >= 0 && custHighlight < custMatches.length) {
+            selectedCustomer = custMatches[custHighlight];
+            render(container);
+          }
         } else if (e.key === 'Escape') {
           dropdown.style.display = 'none';
         }
       });
 
-      searchInput.addEventListener('blur', () => { setTimeout(() => dropdown.style.display = 'none', 200); });
+      searchInput.addEventListener('blur', () => { setTimeout(() => dropdown.style.display = 'none', 250); });
       searchWrap.appendChild(searchInput);
       searchWrap.appendChild(dropdown);
       rightCol.appendChild(searchWrap);
@@ -219,6 +239,7 @@ TE.Billing = (function () {
       });
       positionSkuDrop();
       skuDrop.style.display = 'block';
+      if (skuMatches.length > 0) setSkuHighlight(0);
     }
 
     function setSkuHighlight(idx) {
@@ -231,15 +252,18 @@ TE.Billing = (function () {
       }
     }
 
-    skuInput.addEventListener('input', debounce(() => {
-      const q = skuInput.value.toLowerCase();
+    function filterProducts() {
+      const q = skuInput.value.trim().toLowerCase();
       if (q.length < 1) { skuDrop.style.display = 'none'; skuMatches = []; return; }
-      skuMatches = activeProducts.filter(p =>
-        p.sku_code.toLowerCase().includes(q) ||
-        p.product_name.toLowerCase().includes(q)
-      ).slice(0, 10);
+      const words = q.split(/\s+/);
+      skuMatches = activeProducts.filter(p => {
+        const searchable = (p.sku_code + ' ' + p.product_name + ' ' + (p.hsn_code || '')).toLowerCase();
+        return words.every(w => searchable.includes(w));
+      }).slice(0, 10);
       renderSkuDropdown();
-    }, 150));
+    }
+
+    skuInput.addEventListener('input', filterProducts);
 
     skuInput.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowDown') {
