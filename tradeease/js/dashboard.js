@@ -70,7 +70,7 @@ TE.Dashboard = (function () {
       const tbody = el('tbody');
       for (const inv of recent) {
         const tr = el('tr');
-        tr.innerHTML = `<td class="fw-600">${inv.invoice_number}</td><td>${inv.customer_name}</td><td>${dateStr(inv.invoice_date)}</td><td class="text-right fw-600">${currency(inv.total_amount)}</td>`;
+        tr.innerHTML = `<td class="fw-600">${inv.invoice_number}</td><td>${(TE.Lang.getLang() === 'hi' && inv.customer_name_hi) ? inv.customer_name_hi : inv.customer_name}</td><td>${dateStr(inv.invoice_date)}</td><td class="text-right fw-600">${currency(inv.total_amount)}</td>`;
         tbody.appendChild(tr);
       }
       tbl.appendChild(tbody);
@@ -91,7 +91,7 @@ TE.Dashboard = (function () {
       for (const p of lowStockProducts.slice(0, 10)) {
         const bal = stockBalances[p.sku_code] || 0;
         const tr = el('tr');
-        tr.innerHTML = `<td class="fw-600">${p.sku_code}</td><td>${p.product_name}</td><td class="text-right text-danger fw-600">${bal}</td><td class="text-right">${p.min_stock_level}</td>`;
+        tr.innerHTML = `<td class="fw-600">${p.sku_code}</td><td>${(TE.Lang.getLang() === 'hi' && p.product_name_hi) ? p.product_name_hi : p.product_name}</td><td class="text-right text-danger fw-600">${bal}</td><td class="text-right">${p.min_stock_level}</td>`;
         tbody.appendChild(tr);
       }
       tbl.appendChild(tbody);

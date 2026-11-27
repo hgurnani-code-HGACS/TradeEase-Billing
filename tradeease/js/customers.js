@@ -4,6 +4,7 @@ TE.Customers = (function () {
   async function render(container) {
     const t = TE.Lang.t;
     const customers = await TE.Store.getAll('customers');
+    const isHi = TE.Lang.getLang() === 'hi';
     container.innerHTML = '';
 
     const header = el('div', { className: 'flex-between mb-16' }, [
@@ -37,7 +38,7 @@ TE.Customers = (function () {
         const tr = el('tr');
         tr.innerHTML = `
           <td class="fw-600">${c.customer_id}</td>
-          <td>${c.customer_name}${c.customer_name_hi ? '<div class="text-sm text-secondary">' + c.customer_name_hi + '</div>' : ''}</td>
+          <td>${(isHi && c.customer_name_hi) ? c.customer_name_hi + '<div class="text-sm text-secondary">' + c.customer_name + '</div>' : c.customer_name + ((!isHi && c.customer_name_hi) ? '<div class="text-sm text-secondary">' + c.customer_name_hi + '</div>' : '')}</td>
           <td>${c.mobile || ''}</td>
           <td class="text-sm">${c.gstin || '—'}</td>
           <td>${c.state || ''}</td>

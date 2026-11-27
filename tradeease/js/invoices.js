@@ -85,7 +85,7 @@ TE.Invoices = (function () {
       if (productSearchQuery.trim()) {
         const words = productSearchQuery.trim().toLowerCase().split(/\s+/);
         filtered = filtered.filter(p => {
-          const searchable = (p.sku_code + ' ' + p.product_name).toLowerCase();
+          const searchable = (p.sku_code + ' ' + p.product_name + ' ' + (p.product_name_hi || '')).toLowerCase();
           return words.every(w => searchable.includes(w));
         });
       }
@@ -136,7 +136,8 @@ TE.Invoices = (function () {
       if (selectedProduct) {
         const matchingInvNos = new Set(allDetails.filter(d => d.sku_code === selectedProduct).map(d => d.invoice_number));
         filteredInvoices = invoices.filter(inv => matchingInvNos.has(inv.invoice_number));
-        const prodName = activeProducts.find(p => p.sku_code === selectedProduct)?.product_name || selectedProduct;
+        const selProd = activeProducts.find(p => p.sku_code === selectedProduct);
+        const prodName = selProd ? ((TE.Lang.getLang() === 'hi' && selProd.product_name_hi) ? selProd.product_name_hi : selProd.product_name) : selectedProduct;
 
         const badge = el('div', { style: 'display:inline-flex;align-items:center;gap:8px;padding:6px 12px;background:rgba(59,130,246,.08);border:1px solid var(--primary);border-radius:var(--radius);font-size:.85rem;color:var(--primary)' });
         badge.innerHTML = `<strong>${t('showing_invoices_for')}:</strong> ${prodName} (${filteredInvoices.length})`;
@@ -173,7 +174,7 @@ TE.Invoices = (function () {
         tr.innerHTML = `
           <td class="fw-600">${inv.invoice_number}</td>
           <td>${dateStr(inv.invoice_date)}</td>
-          <td>${inv.customer_name}</td>
+          <td>${(TE.Lang.getLang() === 'hi' && inv.customer_name_hi) ? inv.customer_name_hi : inv.customer_name}</td>
           <td>${inv.payment_mode || 'Cash'}</td>
           <td class="text-right fw-600">${currency(inv.total_amount)}</td>
           <td>${statusBadge}</td>
@@ -209,7 +210,7 @@ TE.Invoices = (function () {
     let detailRows = '';
     details.forEach((d, i) => {
       detailRows += `<tr>
-        <td>${i + 1}</td><td>${d.product_name}</td><td>${d.hsn_code || ''}</td>
+        <td>${i + 1}</td><td>${(TE.Lang.getLang() === 'hi' && d.product_name_hi) ? d.product_name_hi : d.product_name}</td><td>${d.hsn_code || ''}</td>
         <td class="text-center">${d.quantity}</td><td>${d.unit || ''}</td>
         <td class="text-right">${currency(d.rate)}</td>
         <td class="text-right">${currency(d.taxable_value)}</td>
@@ -222,7 +223,7 @@ TE.Invoices = (function () {
         <div><strong>${t('invoice_number')}:</strong> ${inv.invoice_number}</div>
         <div><strong>${t('invoice_date')}:</strong> ${dateStr(inv.invoice_date)}</div>
       </div>
-      <div class="mb-16"><strong>${t('customer')}:</strong> ${inv.customer_name} ${inv.customer_gstin ? '(GSTIN: ' + inv.customer_gstin + ')' : ''}</div>
+      <div class="mb-16"><strong>${t('customer')}:</strong> ${(TE.Lang.getLang() === 'hi' && inv.customer_name_hi) ? inv.customer_name_hi : inv.customer_name} ${inv.customer_gstin ? '(GSTIN: ' + inv.customer_gstin + ')' : ''}</div>
       <div class="table-wrap mb-16">
         <table>
           <thead><tr><th>#</th><th>${t('product')}</th><th>${t('hsn')}</th><th class="text-center">${t('qty')}</th><th>${t('unit')}</th><th class="text-right">${t('rate')}</th><th class="text-right">${t('taxable_amount')}</th><th class="text-right">${t('amount')}</th></tr></thead>

@@ -60,7 +60,7 @@ TE.Reports = (function () {
             const tbody = el('tbody');
             dayInv.forEach(i => {
               const tr = el('tr');
-              tr.innerHTML = `<td class="fw-600">${i.invoice_number}</td><td>${i.customer_name}</td><td>${i.payment_mode}</td><td class="text-right">${currency(i.taxable_amount)}</td><td class="text-right">${currency(i.total_tax)}</td><td class="text-right fw-600">${currency(i.total_amount)}</td>`;
+              tr.innerHTML = `<td class="fw-600">${i.invoice_number}</td><td>${(TE.Lang.getLang() === 'hi' && i.customer_name_hi) ? i.customer_name_hi : i.customer_name}</td><td>${i.payment_mode}</td><td class="text-right">${currency(i.taxable_amount)}</td><td class="text-right">${currency(i.total_tax)}</td><td class="text-right fw-600">${currency(i.total_amount)}</td>`;
               tbody.appendChild(tr);
             });
             t.appendChild(tbody);
@@ -107,7 +107,7 @@ TE.Reports = (function () {
         const productSales = {};
         relevantDetails.forEach(d => {
           if (!productSales[d.sku_code]) {
-            productSales[d.sku_code] = { sku: d.sku_code, name: d.product_name, qty: 0, value: 0 };
+            productSales[d.sku_code] = { sku: d.sku_code, name: (TE.Lang.getLang() === 'hi' && d.product_name_hi) ? d.product_name_hi : d.product_name, qty: 0, value: 0 };
           }
           productSales[d.sku_code].qty += d.quantity;
           productSales[d.sku_code].value += d.line_total;
@@ -146,7 +146,7 @@ TE.Reports = (function () {
           const bal = balances[p.sku_code] || 0;
           const isLow = bal <= (p.min_stock_level || 0);
           const tr = el('tr');
-          tr.innerHTML = `<td class="fw-600">${p.sku_code}</td><td>${p.product_name}</td><td class="text-right fw-600 ${isLow ? 'text-danger' : ''}">${bal}</td><td class="text-right">${p.min_stock_level || 0}</td><td>${isLow ? '<span class="badge badge-danger">Low</span>' : '<span class="badge badge-success">OK</span>'}</td><td class="text-right">${currency(bal * p.purchase_price)}</td>`;
+          tr.innerHTML = `<td class="fw-600">${p.sku_code}</td><td>${(TE.Lang.getLang() === 'hi' && p.product_name_hi) ? p.product_name_hi : p.product_name}</td><td class="text-right fw-600 ${isLow ? 'text-danger' : ''}">${bal}</td><td class="text-right">${p.min_stock_level || 0}</td><td>${isLow ? '<span class="badge badge-danger">Low</span>' : '<span class="badge badge-success">OK</span>'}</td><td class="text-right">${currency(bal * p.purchase_price)}</td>`;
           tbody.appendChild(tr);
         });
         t.appendChild(tbody);

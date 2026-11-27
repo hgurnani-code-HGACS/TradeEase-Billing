@@ -64,7 +64,7 @@ TE.Billing = (function () {
     if (selectedCustomer) {
       const bar = el('div', { className: 'pos-customer-bar' }, [
         el('div', { className: 'cust-info' }, [
-          el('strong', {}, selectedCustomer.customer_name),
+          el('strong', {}, (TE.Lang.getLang() === 'hi' && selectedCustomer.customer_name_hi) ? selectedCustomer.customer_name_hi : selectedCustomer.customer_name),
           el('span', {}, `${selectedCustomer.customer_id} | ${selectedCustomer.mobile || tr('no_customer')} | ${selectedCustomer.gstin || tr('no_gstin')}`),
         ]),
         el('button', { className: 'btn btn-outline btn-sm', onClick: () => { selectedCustomer = null; render(container); } }, tr('change')),
@@ -78,7 +78,7 @@ TE.Billing = (function () {
       let custMatches = [];
 
       function matchCustomer(c, q) {
-        const searchable = [c.customer_name || '', c.mobile || '', c.customer_id || '', c.gstin || '', c.state || ''].join(' ').toLowerCase();
+        const searchable = [c.customer_name || '', c.customer_name_hi || '', c.mobile || '', c.customer_id || '', c.gstin || '', c.state || ''].join(' ').toLowerCase();
         const words = q.split(/\s+/);
         return words.every(w => searchable.includes(w));
       }
@@ -94,7 +94,8 @@ TE.Billing = (function () {
         custMatches.forEach((c) => {
           const item = el('div', { className: 'customer-dropdown-item' });
           item.addEventListener('mousedown', (e) => { e.preventDefault(); selectedCustomer = c; render(container); });
-          item.innerHTML = `<div class="cust-name">${c.customer_name}</div><div class="cust-meta">${c.customer_id} | ${c.mobile || tr('no_customer')} | ${c.gstin || tr('no_gstin')}</div>`;
+          const custLabel = (TE.Lang.getLang() === 'hi' && c.customer_name_hi) ? c.customer_name_hi : c.customer_name;
+          item.innerHTML = `<div class="cust-name">${custLabel}</div><div class="cust-meta">${c.customer_id} | ${c.mobile || tr('no_customer')} | ${c.gstin || tr('no_gstin')}</div>`;
           dropdown.appendChild(item);
         });
         dropdown.style.display = 'block';
@@ -188,7 +189,7 @@ TE.Billing = (function () {
       if (productSearchQuery.trim()) {
         const words = productSearchQuery.trim().toLowerCase().split(/\s+/);
         filtered = filtered.filter(p => {
-          const searchable = (p.sku_code + ' ' + p.product_name + ' ' + (p.hsn_code || '')).toLowerCase();
+          const searchable = (p.sku_code + ' ' + p.product_name + ' ' + (p.product_name_hi || '') + ' ' + (p.hsn_code || '')).toLowerCase();
           return words.every(w => searchable.includes(w));
         });
       }
@@ -264,7 +265,8 @@ TE.Billing = (function () {
           const row = el('div', { className: 'pos-cart-item' });
 
           const info = el('div', { className: 'item-info' });
-          info.innerHTML = `<div class="item-name">${item.product_name}</div><div class="item-rate">${currency(item.rate)} x ${item.quantity}</div>`;
+          const itemLabel = (TE.Lang.getLang() === 'hi' && item.product_name_hi) ? item.product_name_hi : item.product_name;
+          info.innerHTML = `<div class="item-name">${itemLabel}</div><div class="item-rate">${currency(item.rate)} x ${item.quantity}</div>`;
 
           const stepper = el('div', { className: 'qty-stepper' });
           const minusBtn = el('button', { onClick: () => {

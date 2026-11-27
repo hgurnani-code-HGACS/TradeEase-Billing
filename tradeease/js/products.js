@@ -5,8 +5,9 @@ TE.Products = (function () {
     const t = TE.Lang.t;
     const products = await TE.Store.getAll('products');
     const categories = await TE.Store.getAll('categories');
+    const isHi = TE.Lang.getLang() === 'hi';
     const catMap = {};
-    categories.forEach(c => catMap[c.id] = c.name);
+    categories.forEach(c => catMap[c.id] = (isHi && c.name_hi) ? c.name_hi : c.name);
 
     container.innerHTML = '';
 
@@ -48,7 +49,7 @@ TE.Products = (function () {
         const tr = el('tr');
         tr.innerHTML = `
           <td class="text-nowrap fw-600">${p.sku_code}</td>
-          <td>${p.product_name}${p.product_name_hi ? '<div class="text-sm text-secondary">' + p.product_name_hi + '</div>' : ''}</td>
+          <td>${(isHi && p.product_name_hi) ? p.product_name_hi + '<div class="text-sm text-secondary">' + p.product_name + '</div>' : p.product_name + ((!isHi && p.product_name_hi) ? '<div class="text-sm text-secondary">' + p.product_name_hi + '</div>' : '')}</td>
           <td>${catMap[p.category] || p.category}</td>
           <td>${p.hsn_code || ''}</td>
           <td class="text-right">${currency(p.purchase_price)}</td>
@@ -221,7 +222,7 @@ TE.Products = (function () {
       const list = el('div', { className: 'mb-16' });
       categories.forEach(c => {
         const row = el('div', { className: 'flex-between', style: { padding: '8px 0', borderBottom: '1px solid var(--border)' } }, [
-          el('span', {}, c.name + (c.name_hi ? ' (' + c.name_hi + ')' : '')),
+          el('span', {}, (TE.Lang.getLang() === 'hi' && c.name_hi) ? c.name_hi + ' (' + c.name + ')' : c.name + (c.name_hi ? ' (' + c.name_hi + ')' : '')),
           el('button', { className: 'btn btn-ghost btn-sm text-danger', onClick: async () => {
             categories = categories.filter(x => x.id !== c.id);
             await TE.Store.del('categories', c.id);
