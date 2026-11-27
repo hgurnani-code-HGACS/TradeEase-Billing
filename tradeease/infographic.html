@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TradeEase - Business Infographic</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.6.0/tabler-icons.min.css">
+<style>
+  :root {
+    --accent: #2a78d6;
+    --accent-bg: #e6f1fb;
+    --accent-text: #0c447c;
+    --surface-0: #f5f5f4;
+    --surface-1: #fafaf9;
+    --surface-2: #ffffff;
+    --text-primary: #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted: #898781;
+    --border: rgba(11,11,11,0.10);
+    --border-strong: rgba(11,11,11,0.18);
+    --warning-bg: #faeeda;
+    --warning-text: #854f0b;
+    --purple: #534AB7;
+    --teal: #0F6E56;
+    --radius: 8px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --accent: #3987e5;
+      --accent-bg: #0c2d4f;
+      --accent-text: #85b7eb;
+      --surface-0: #111110;
+      --surface-1: #1a1a19;
+      --surface-2: #222221;
+      --text-primary: #f0efec;
+      --text-secondary: #c3c2b7;
+      --text-muted: #898781;
+      --border: rgba(255,255,255,0.10);
+      --border-strong: rgba(255,255,255,0.18);
+      --warning-bg: #412402;
+      --warning-text: #fac775;
+      --purple: #afa9ec;
+      --teal: #5dcaa5;
+    }
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--surface-0);
+    color: var(--text-primary);
+    line-height: 1.5;
+    padding: 1.5rem;
+    display: flex;
+    justify-content: center;
+  }
+  .info-wrap { max-width: 720px; width: 100%; }
+  .lang-toggle { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+  .lang-btn { display: flex; align-items: center; background: var(--surface-2); border: 1px solid var(--border-strong); border-radius: 20px; overflow: hidden; cursor: pointer; user-select: none; }
+  .lang-opt { padding: 6px 16px; font-size: 13px; font-weight: 500; color: var(--text-secondary); transition: all 0.2s; cursor: pointer; border: none; background: none; }
+  .lang-opt.active { background: var(--accent); color: #fff; }
+  .hero { text-align: center; margin-bottom: 1.5rem; padding: 1.5rem 1rem; background: var(--accent-bg); border-radius: 12px; }
+  .hero h1 { font-size: 24px; font-weight: 600; color: var(--accent-text); margin-bottom: 4px; }
+  .hero .subtitle { font-size: 15px; font-weight: 500; color: var(--accent-text); margin-bottom: 6px; }
+  .hero .desc { font-size: 13px; color: var(--text-secondary); line-height: 1.6; max-width: 560px; margin: 0 auto; }
+  .section { margin-bottom: 1.5rem; }
+  .section-title { font-size: 15px; font-weight: 500; color: var(--text-primary); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+  .section-title i { font-size: 18px; color: var(--accent); }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  @media (max-width: 540px) { .grid-3 { grid-template-columns: repeat(2, 1fr); } }
+  .card { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; }
+  .card-icon { font-size: 20px; margin-bottom: 4px; }
+  .card h3 { font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 2px; }
+  .card p { font-size: 11.5px; color: var(--text-secondary); line-height: 1.4; }
+  .feat-card .card-icon { color: var(--purple); }
+  .data-card .card-icon { color: var(--teal); }
+  .flow-steps { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+  .step-box { background: var(--accent-bg); color: var(--accent-text); font-size: 12px; font-weight: 500; padding: 7px 11px; border-radius: var(--radius); white-space: nowrap; display: flex; align-items: center; gap: 5px; }
+  .step-box .num { background: var(--accent); color: #fff; width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; }
+  .flow-arrow { color: var(--text-muted); font-size: 16px; flex-shrink: 0; }
+  .uc-list { display: flex; flex-direction: column; gap: 8px; }
+  .uc-card { background: var(--surface-1); border-radius: var(--radius); padding: 10px 14px; display: flex; align-items: flex-start; gap: 10px; }
+  .uc-num { background: var(--accent-bg); color: var(--accent-text); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; margin-top: 1px; }
+  .uc-card h4 { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+  .uc-card p { font-size: 11.5px; color: var(--text-secondary); line-height: 1.4; margin-top: 2px; }
+  .sync-row { display: flex; gap: 10px; }
+  @media (max-width: 540px) { .sync-row { flex-direction: column; } }
+  .sync-box { flex: 1; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; text-align: center; }
+  .sync-box i { font-size: 22px; color: var(--accent); display: block; margin-bottom: 4px; }
+  .sync-box h4 { font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 2px; }
+  .sync-box p { font-size: 11.5px; color: var(--text-secondary); line-height: 1.4; }
+  .tech-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+  .tech-pill { background: var(--surface-1); border: 1px solid var(--border); border-radius: 20px; padding: 5px 14px; font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 5px; }
+  .tech-pill i { font-size: 15px; color: var(--text-muted); }
+  .limit-list { display: flex; flex-wrap: wrap; gap: 8px; }
+  .limit-pill { background: var(--warning-bg); color: var(--warning-text); font-size: 12px; padding: 5px 12px; border-radius: 20px; }
+  .footer { text-align: center; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+  .footer p { font-size: 12px; color: var(--text-muted); }
+</style>
+</head>
+<body>
+<div class="info-wrap" id="infographic">
+
+  <div class="lang-toggle">
+    <div class="lang-btn">
+      <button class="lang-opt active" data-lang="en" onclick="setLang('en')">English</button>
+      <button class="lang-opt" data-lang="hi" onclick="setLang('hi')">हिन्दी</button>
+    </div>
+  </div>
+
+  <div class="hero">
+    <h1><i class="ti ti-building-store" aria-hidden="true" style="font-size:24px;vertical-align:-3px;margin-right:4px"></i> TradeEase</h1>
+    <p class="subtitle" data-key="hero_sub"></p>
+    <p class="desc" data-key="hero_desc"></p>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><i class="ti ti-star" aria-hidden="true"></i> <span data-key="sec_features"></span></div>
+    <div class="grid-3">
+      <div class="card feat-card"><div class="card-icon"><i class="ti ti-layout-dashboard" aria-hidden="true"></i></div><h3 data-key="f1_t"></h3><p data-key="f1_d"></p></div>
+      <div class="card feat-card"><div class="card-icon"><i class="ti ti-package" aria-hidden="true"></i></div><h3 data-key="f2_t"></h3><p data-key="f2_d"></p></div>
+      <div class="card feat-card"><div class="card-icon"><i class="ti ti-users" aria-hidden="true"></i></div><h3 data-key="f3_t"></h3><p data-key="f3_d"></p></div>
+      <div class="card feat-card"><div class="card-icon"><i class="ti ti-receipt" aria-hidden="true"></i></div><h3 data-key="f4_t"></h3><p data-key="f4_d"></p></div>
+      <div class="card feat-card"><div class="card-icon"><i class="ti ti-file-invoice" aria-hidden="true"></i></div><h3 data-key="f5_t"></h3><p data-key="f5_d"></p></div>
+      <div class="card feat-card"><div class="card-icon"><i class="ti ti-report-analytics" aria-hidden="true"></i></div><h3 data-key="f6_t"></h3><p data-key="f6_d"></p></div>
+      <div class="card feat-card"><div class="card-icon"><i class="ti ti-calculator" aria-hidden="true"></i></div><h3 data-key="f7_t"></h3><p data-key="f7_d"></p></div>
+      <div class="card feat-card"><div class="card-icon"><i class="ti ti-file-download" aria-hidden="true"></i></div><h3 data-key="f8_t"></h3><p data-key="f8_d"></p></div>
+      <div class="card feat-card"><div class="card-icon"><i class="ti ti-cloud-upload" aria-hidden="true"></i></div><h3 data-key="f9_t"></h3><p data-key="f9_d"></p></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><i class="ti ti-database" aria-hidden="true"></i> <span data-key="sec_tables"></span></div>
+    <div class="grid-3">
+      <div class="card data-card"><div class="card-icon"><i class="ti ti-category" aria-hidden="true"></i></div><h3 data-key="t1_t"></h3><p data-key="t1_d"></p></div>
+      <div class="card data-card"><div class="card-icon"><i class="ti ti-box" aria-hidden="true"></i></div><h3 data-key="t2_t"></h3><p data-key="t2_d"></p></div>
+      <div class="card data-card"><div class="card-icon"><i class="ti ti-user" aria-hidden="true"></i></div><h3 data-key="t3_t"></h3><p data-key="t3_d"></p></div>
+      <div class="card data-card"><div class="card-icon"><i class="ti ti-file-text" aria-hidden="true"></i></div><h3 data-key="t4_t"></h3><p data-key="t4_d"></p></div>
+      <div class="card data-card"><div class="card-icon"><i class="ti ti-list-details" aria-hidden="true"></i></div><h3 data-key="t5_t"></h3><p data-key="t5_d"></p></div>
+      <div class="card data-card"><div class="card-icon"><i class="ti ti-history" aria-hidden="true"></i></div><h3 data-key="t6_t"></h3><p data-key="t6_d"></p></div>
+      <div class="card data-card"><div class="card-icon"><i class="ti ti-settings" aria-hidden="true"></i></div><h3 data-key="t7_t"></h3><p data-key="t7_d"></p></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><i class="ti ti-arrows-right-left" aria-hidden="true"></i> <span data-key="sec_flow"></span></div>
+    <div class="flow-steps">
+      <div class="step-box"><span class="num">1</span> <span data-key="s1"></span></div>
+      <span class="flow-arrow"><i class="ti ti-chevron-right" aria-hidden="true"></i></span>
+      <div class="step-box"><span class="num">2</span> <span data-key="s2"></span></div>
+      <span class="flow-arrow"><i class="ti ti-chevron-right" aria-hidden="true"></i></span>
+      <div class="step-box"><span class="num">3</span> <span data-key="s3"></span></div>
+      <span class="flow-arrow"><i class="ti ti-chevron-right" aria-hidden="true"></i></span>
+      <div class="step-box"><span class="num">4</span> <span data-key="s4"></span></div>
+      <span class="flow-arrow"><i class="ti ti-chevron-right" aria-hidden="true"></i></span>
+      <div class="step-box"><span class="num">5</span> <span data-key="s5"></span></div>
+      <span class="flow-arrow"><i class="ti ti-chevron-right" aria-hidden="true"></i></span>
+      <div class="step-box"><span class="num">6</span> <span data-key="s6"></span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><i class="ti ti-bulb" aria-hidden="true"></i> <span data-key="sec_uc"></span></div>
+    <div class="uc-list">
+      <div class="uc-card"><div class="uc-num">1</div><div><h4 data-key="u1_t"></h4><p data-key="u1_d"></p></div></div>
+      <div class="uc-card"><div class="uc-num">2</div><div><h4 data-key="u2_t"></h4><p data-key="u2_d"></p></div></div>
+      <div class="uc-card"><div class="uc-num">3</div><div><h4 data-key="u3_t"></h4><p data-key="u3_d"></p></div></div>
+      <div class="uc-card"><div class="uc-num">4</div><div><h4 data-key="u4_t"></h4><p data-key="u4_d"></p></div></div>
+      <div class="uc-card"><div class="uc-num">5</div><div><h4 data-key="u5_t"></h4><p data-key="u5_d"></p></div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><i class="ti ti-cloud" aria-hidden="true"></i> <span data-key="sec_sync"></span></div>
+    <div class="sync-row">
+      <div class="sync-box"><i class="ti ti-plug-connected" aria-hidden="true"></i><h4 data-key="sy1_t"></h4><p data-key="sy1_d"></p></div>
+      <div class="sync-box"><i class="ti ti-upload" aria-hidden="true"></i><h4 data-key="sy2_t"></h4><p data-key="sy2_d"></p></div>
+      <div class="sync-box"><i class="ti ti-download" aria-hidden="true"></i><h4 data-key="sy3_t"></h4><p data-key="sy3_d"></p></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><i class="ti ti-code" aria-hidden="true"></i> <span data-key="sec_tech"></span></div>
+    <div class="tech-bar">
+      <span class="tech-pill"><i class="ti ti-brand-html5" aria-hidden="true"></i> HTML/CSS/JS</span>
+      <span class="tech-pill"><i class="ti ti-database" aria-hidden="true"></i> IndexedDB</span>
+      <span class="tech-pill"><i class="ti ti-table" aria-hidden="true"></i> Google Sheets</span>
+      <span class="tech-pill"><i class="ti ti-api" aria-hidden="true"></i> Apps Script API</span>
+      <span class="tech-pill"><i class="ti ti-brand-github" aria-hidden="true"></i> GitHub Pages</span>
+      <span class="tech-pill"><i class="ti ti-file-type-pdf" aria-hidden="true"></i> jsPDF</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><i class="ti ti-alert-triangle" aria-hidden="true"></i> <span data-key="sec_limit"></span></div>
+    <div class="limit-list" id="limitList"></div>
+  </div>
+
+  <div class="footer">
+    <p>TradeEase v1.0 &middot; Auto Comply Solutions &middot; tradeease-billing.autocomplys.com</p>
+  </div>
+
+</div>
+
+<script>
+var T = {
+  en: {
+    hero_sub: "FMCG inventory & billing management",
+    hero_desc: "A lightweight web application for small-to-medium FMCG trading businesses to manage product inventory, generate GST-compliant invoices, and sync data to Google Sheets as a cloud backup.",
+    sec_features: "Key features & modules",
+    f1_t: "Dashboard", f1_d: "Quick stats, low-stock alerts, recent sales",
+    f2_t: "Products", f2_d: "Add, edit, categorize, track stock levels",
+    f3_t: "Customers", f3_d: "Manage customer directory with GST details",
+    f4_t: "Billing", f4_d: "Create invoices with auto tax calculation",
+    f5_t: "Invoices", f5_d: "View, search, download past invoices as PDF",
+    f6_t: "Reports", f6_d: "Sales, stock, customer-wise reports",
+    f7_t: "GST tax engine", f7_d: "CGST/SGST or IGST based on state",
+    f8_t: "PDF export", f8_d: "Generate & download invoices as PDF",
+    f9_t: "Cloud sync", f9_d: "Push/pull data to Google Sheets",
+    sec_tables: "Data tables (7)",
+    t1_t: "Categories", t1_d: "Product classification groups",
+    t2_t: "Products", t2_d: "Item master with pricing & stock",
+    t3_t: "Customers", t3_d: "Buyer details & GST info",
+    t4_t: "Sales header", t4_d: "Invoice-level totals & metadata",
+    t5_t: "Sales details", t5_d: "Line items per invoice",
+    t6_t: "Stock ledger", t6_d: "Movement history (in/out/adjust)",
+    t7_t: "Settings", t7_d: "Company profile & config",
+    sec_flow: "Data process flow",
+    s1: "Setup master data", s2: "Add products", s3: "Register customers",
+    s4: "Create invoice", s5: "Auto stock update", s6: "Sync to sheets",
+    sec_uc: "Use cases",
+    u1_t: "Quick invoicing", u1_d: "Generate GST-compliant bills in seconds with auto-calculated taxes",
+    u2_t: "Inventory tracking", u2_d: "Real-time stock updates on every sale, with low-stock alerts on dashboard",
+    u3_t: "Customer management", u3_d: "Maintain buyer directory with GSTIN for repeat billing",
+    u4_t: "Sales reporting", u4_d: "Date-wise, product-wise, and customer inventory-wise sales reports",
+    u5_t: "Cloud backup", u5_d: "Push all data to Google Sheets for safekeeping and audit trail",
+    sec_sync: "Google Sheets sync",
+    sy1_t: "Test connection", sy1_d: "Verify Apps Script endpoint is reachable",
+    sy2_t: "Push to sheets", sy2_d: "Send all local data to Google Sheets",
+    sy3_t: "Pull from sheets", sy3_d: "Restore data from Google Sheets to browser",
+    sec_tech: "Technology",
+    sec_limit: "Current limitations",
+    limits: [
+      "Single-user (no multi-user auth)",
+      "Browser-local data (IndexedDB)",
+      "Manual sync required",
+      "No purchase/expense tracking",
+      "No multi-device real-time sync"
+    ]
+  },
+  hi: {
+    hero_sub: "FMCG इन्वेंटरी एवं बिलिंग प्रबंधन",
+    hero_desc: "छोटे-मध्यम FMCG व्यापार के लिए एक हल्का वेब एप्लिकेशन जो उत्पाद इन्वेंटरी प्रबंधन, GST-अनुरूप चालान निर्माण, और Google Sheets में डेटा सिंक की सुविधा प्रदान करता है।",
+    sec_features: "प्रमुख विशेषताएँ एवं मॉड्यूल",
+    f1_t: "डैशबोर्ड", f1_d: "त्वरित आँकड़े, कम स्टॉक अलर्ट, हालिया बिक्री",
+    f2_t: "उत्पाद", f2_d: "जोड़ें, संपादित करें, वर्गीकृत करें, स्टॉक ट्रैक करें",
+    f3_t: "ग्राहक", f3_d: "GST विवरण सहित ग्राहक सूची प्रबंधन",
+    f4_t: "बिलिंग", f4_d: "स्वचालित कर गणना के साथ चालान बनाएँ",
+    f5_t: "चालान", f5_d: "पिछले चालान देखें, खोजें, PDF डाउनलोड करें",
+    f6_t: "रिपोर्ट", f6_d: "बिक्री, स्टॉक, ग्राहक-वार रिपोर्ट",
+    f7_t: "GST कर इंजन", f7_d: "राज्य के अनुसार CGST/SGST या IGST",
+    f8_t: "PDF निर्यात", f8_d: "चालान PDF के रूप में बनाएँ व डाउनलोड करें",
+    f9_t: "क्लाउड सिंक", f9_d: "Google Sheets में डेटा पुश/पुल करें",
+    sec_tables: "डेटा तालिकाएँ (7)",
+    t1_t: "श्रेणियाँ", t1_d: "उत्पाद वर्गीकरण समूह",
+    t2_t: "उत्पाद", t2_d: "मूल्य एवं स्टॉक सहित आइटम मास्टर",
+    t3_t: "ग्राहक", t3_d: "क्रेता विवरण एवं GST जानकारी",
+    t4_t: "बिक्री हेडर", t4_d: "चालान-स्तरीय कुल एवं मेटाडेटा",
+    t5_t: "बिक्री विवरण", t5_d: "प्रति चालान लाइन आइटम",
+    t6_t: "स्टॉक खाता", t6_d: "माल आवागमन इतिहास (इन/आउट/समायोजन)",
+    t7_t: "सेटिंग्स", t7_d: "कंपनी प्रोफ़ाइल एवं कॉन्फ़िगरेशन",
+    sec_flow: "डेटा प्रक्रिया प्रवाह",
+    s1: "मास्टर डेटा सेटअप", s2: "उत्पाद जोड़ें", s3: "ग्राहक पंजीकरण",
+    s4: "चालान बनाएँ", s5: "स्वचालित स्टॉक अपडेट", s6: "शीट्स में सिंक",
+    sec_uc: "उपयोग के मामले",
+    u1_t: "त्वरित बिलिंग", u1_d: "स्वचालित कर गणना के साथ कुछ ही सेकंड में GST-अनुरूप बिल बनाएँ",
+    u2_t: "इन्वेंटरी ट्रैकिंग", u2_d: "हर बिक्री पर रियल-टाइम स्टॉक अपडेट, डैशबोर्ड पर कम स्टॉक अलर्ट",
+    u3_t: "ग्राहक प्रबंधन", u3_d: "बार-बार बिलिंग के लिए GSTIN सहित क्रेता सूची बनाए रखें",
+    u4_t: "बिक्री रिपोर्टिंग", u4_d: "तिथि-वार, उत्पाद-वार, और ग्राहक इन्वेंटरी-वार बिक्री रिपोर्ट",
+    u5_t: "क्लाउड बैकअप", u5_d: "सुरक्षित भंडारण और ऑडिट ट्रेल के लिए सारा डेटा Google Sheets में भेजें",
+    sec_sync: "Google Sheets सिंक",
+    sy1_t: "कनेक्शन जाँच", sy1_d: "Apps Script एंडपॉइंट उपलब्ध है या नहीं सत्यापित करें",
+    sy2_t: "शीट्स में भेजें", sy2_d: "सभी स्थानीय डेटा Google Sheets में भेजें",
+    sy3_t: "शीट्स से लाएँ", sy3_d: "Google Sheets से ब्राउज़र में डेटा पुनर्स्थापित करें",
+    sec_tech: "तकनीक",
+    sec_limit: "वर्तमान सीमाएँ",
+    limits: [
+      "एकल-उपयोगकर्ता (मल्टी-यूज़र नहीं)",
+      "ब्राउज़र-स्थानीय डेटा (IndexedDB)",
+      "मैन्युअल सिंक आवश्यक",
+      "कोई खरीद/व्यय ट्रैकिंग नहीं",
+      "मल्टी-डिवाइस रियल-टाइम सिंक नहीं"
+    ]
+  }
+};
+
+var currentLang = 'en';
+
+function setLang(lang) {
+  currentLang = lang;
+  document.querySelectorAll('.lang-opt').forEach(function(el) {
+    el.classList.toggle('active', el.getAttribute('data-lang') === lang);
+  });
+  var strings = T[lang];
+  document.querySelectorAll('[data-key]').forEach(function(el) {
+    var key = el.getAttribute('data-key');
+    if (strings[key] !== undefined) el.textContent = strings[key];
+  });
+  var list = document.getElementById('limitList');
+  list.innerHTML = '';
+  strings.limits.forEach(function(txt) {
+    var s = document.createElement('span');
+    s.className = 'limit-pill';
+    s.textContent = txt;
+    list.appendChild(s);
+  });
+}
+
+setLang('en');
+</script>
+</body>
+</html>
