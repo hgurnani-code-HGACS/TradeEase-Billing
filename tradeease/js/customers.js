@@ -37,7 +37,7 @@ TE.Customers = (function () {
         const tr = el('tr');
         tr.innerHTML = `
           <td class="fw-600">${c.customer_id}</td>
-          <td>${c.customer_name}</td>
+          <td>${c.customer_name}${c.customer_name_hi ? '<div class="text-sm text-secondary">' + c.customer_name_hi + '</div>' : ''}</td>
           <td>${c.mobile || ''}</td>
           <td class="text-sm">${c.gstin || '—'}</td>
           <td>${c.state || ''}</td>
@@ -91,6 +91,10 @@ TE.Customers = (function () {
           <label class="form-label">Customer Name *</label>
           <input type="text" class="form-input" id="cName" value="${customer?.customer_name || ''}" placeholder="Business or individual name">
         </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Customer Name (Hindi) <span class="text-secondary">ग्राहक का नाम</span></label>
+        <input type="text" class="form-input" id="cNameHi" value="${customer?.customer_name_hi || ''}" placeholder="ग्राहक का नाम हिंदी में">
       </div>
       <div class="form-row">
         <div class="form-group">
@@ -175,6 +179,7 @@ TE.Customers = (function () {
       const data = {
         customer_id: cid,
         customer_name: name,
+        customer_name_hi: document.getElementById('cNameHi').value.trim(),
         mobile: document.getElementById('cMobile').value.trim(),
         billing_address: document.getElementById('cBillAddr').value.trim(),
         shipping_address: document.getElementById('cShipAddr').value.trim(),

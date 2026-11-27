@@ -158,10 +158,11 @@ TE.Billing = (function () {
     const allBtn = el('button', { className: 'pos-cat-btn' + (selectedCategory === null ? ' active' : ''), onClick: () => { selectedCategory = null; render(container); } }, tr('all_products'));
     catStrip.appendChild(allBtn);
     categories.forEach(cat => {
+      const catLabel = (TE.Lang.getLang() === 'hi' && cat.name_hi) ? cat.name_hi : cat.name;
       const btn = el('button', {
         className: 'pos-cat-btn' + (selectedCategory === cat.id ? ' active' : ''),
         onClick: () => { selectedCategory = cat.id; render(container); }
-      }, cat.name);
+      }, catLabel);
       catStrip.appendChild(btn);
     });
     posLeft.appendChild(catStrip);
@@ -208,8 +209,9 @@ TE.Billing = (function () {
         }
         const stockClass = isOut ? 'no-stock' : (isLow ? 'low-stock' : 'in-stock');
         const stockLabel = isOut ? tr('out_of_stock') : `${tr('stock')}: ${stock}`;
+        const prodLabel = (TE.Lang.getLang() === 'hi' && p.product_name_hi) ? p.product_name_hi : p.product_name;
         card.innerHTML = `
-          <div class="prod-name">${p.product_name}</div>
+          <div class="prod-name">${prodLabel}</div>
           <div class="prod-sku">${p.sku_code}</div>
           <span class="prod-stock ${stockClass}">${stockLabel}</span>
           <div class="prod-price">${currency(p.selling_price)}</div>`;
@@ -371,6 +373,7 @@ TE.Billing = (function () {
       id: uid(),
       sku_code: product.sku_code,
       product_name: product.product_name,
+      product_name_hi: product.product_name_hi || '',
       hsn_code: product.hsn_code,
       quantity: 1,
       unit: product.unit,
@@ -431,7 +434,7 @@ TE.Billing = (function () {
 
     const header = {
       invoice_number: invoiceNumber, invoice_date: invoiceDate,
-      customer_id: selectedCustomer.customer_id, customer_name: selectedCustomer.customer_name,
+      customer_id: selectedCustomer.customer_id, customer_name: selectedCustomer.customer_name, customer_name_hi: selectedCustomer.customer_name_hi || '',
       customer_gstin: selectedCustomer.gstin || '', customer_address: selectedCustomer.billing_address || '',
       customer_state: selectedCustomer.state || '', customer_state_code: selectedCustomer.state_code || '',
       subtotal: totals.subtotal, discount_type: discountType, discount_value: discountValue,
@@ -449,7 +452,7 @@ TE.Billing = (function () {
       const tax = lineTaxable * item.gst_rate / 100;
       return {
         id: item.id, invoice_number: invoiceNumber, sr_no: idx + 1,
-        sku_code: item.sku_code, product_name: item.product_name, hsn_code: item.hsn_code,
+        sku_code: item.sku_code, product_name: item.product_name, product_name_hi: item.product_name_hi || '', hsn_code: item.hsn_code,
         quantity: item.quantity, unit: item.unit, rate: item.rate, discount: item.discount,
         taxable_value: Math.round(lineTaxable * 100) / 100, gst_rate: item.gst_rate,
         cgst_amount: intra ? Math.round(tax / 2 * 100) / 100 : 0,
@@ -495,7 +498,7 @@ TE.Billing = (function () {
     selectedCustomer = await TE.Store.get('customers', inv.customer_id);
     const details = await TE.Store.getByIndex('sales_details', 'invoice_number', inv.invoice_number);
     lineItems = details.map(d => ({
-      id: d.id, sku_code: d.sku_code, product_name: d.product_name, hsn_code: d.hsn_code,
+      id: d.id, sku_code: d.sku_code, product_name: d.product_name, product_name_hi: d.product_name_hi || '', hsn_code: d.hsn_code,
       quantity: d.quantity, unit: d.unit, rate: d.rate, mrp: 0, gst_rate: d.gst_rate, discount: d.discount || 0,
     }));
   }

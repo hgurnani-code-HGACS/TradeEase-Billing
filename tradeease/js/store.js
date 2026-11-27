@@ -198,6 +198,7 @@ TE.Store = (function () {
     await setSetting('payment_discount_master', {
       Cash: 10, UPI: 5, 'Bank Transfer': 0, Credit: 0, Cheque: 0
     });
+    await setSetting('print_language', 'en');
   }
 
   return {

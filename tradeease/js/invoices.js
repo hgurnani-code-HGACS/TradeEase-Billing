@@ -55,10 +55,11 @@ TE.Invoices = (function () {
     }, t('all_products'));
     catStrip.appendChild(allBtn);
     categories.forEach(cat => {
+      const catLabel = (TE.Lang.getLang() === 'hi' && cat.name_hi) ? cat.name_hi : cat.name;
       const btn = el('button', {
         className: 'pos-cat-btn' + (selectedCategory === cat.id ? ' active' : ''),
         onClick: () => { selectedCategory = cat.id; selectedProduct = null; render(container); }
-      }, cat.name);
+      }, catLabel);
       catStrip.appendChild(btn);
     });
     container.appendChild(catStrip);
@@ -105,8 +106,9 @@ TE.Invoices = (function () {
         const stockClass = kpi.stock <= 0 ? 'no-stock' : (kpi.stock <= (p.min_stock_level || 0) ? 'low-stock' : 'in-stock');
         const stockLabel = kpi.stock <= 0 ? t('out_of_stock') : `${t('stock')}: ${kpi.stock}`;
 
+        const prodLabel = (TE.Lang.getLang() === 'hi' && p.product_name_hi) ? p.product_name_hi : p.product_name;
         card.innerHTML = `
-          <div class="prod-name">${p.product_name}</div>
+          <div class="prod-name">${prodLabel}</div>
           <div class="prod-sku">${p.sku_code}</div>
           <span class="prod-stock ${stockClass}">${stockLabel}</span>
           <div class="prod-kpi">${t('sold')}: ${kpi.totalSold}</div>
@@ -246,7 +248,7 @@ TE.Invoices = (function () {
 
   async function reprintInvoice(inv) {
     const details = await TE.Store.getByIndex('sales_details', 'invoice_number', inv.invoice_number);
-    TE.PDF.generateInvoice(inv, details);
+    await TE.PDF.generateInvoice(inv, details);
     toast('PDF generated', 'success');
   }
 

@@ -48,7 +48,7 @@ TE.Products = (function () {
         const tr = el('tr');
         tr.innerHTML = `
           <td class="text-nowrap fw-600">${p.sku_code}</td>
-          <td>${p.product_name}</td>
+          <td>${p.product_name}${p.product_name_hi ? '<div class="text-sm text-secondary">' + p.product_name_hi + '</div>' : ''}</td>
           <td>${catMap[p.category] || p.category}</td>
           <td>${p.hsn_code || ''}</td>
           <td class="text-right">${currency(p.purchase_price)}</td>
@@ -102,6 +102,10 @@ TE.Products = (function () {
           <label class="form-label">Product Name *</label>
           <input type="text" class="form-input" id="pName" value="${product?.product_name || ''}" placeholder="Green Cardamom 100g">
         </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Product Name (Hindi) <span class="text-secondary">उत्पाद का नाम</span></label>
+        <input type="text" class="form-input" id="pNameHi" value="${product?.product_name_hi || ''}" placeholder="हरी इलायची 100 ग्राम">
       </div>
       <div class="form-row">
         <div class="form-group">
@@ -180,6 +184,7 @@ TE.Products = (function () {
       const data = {
         sku_code: document.getElementById('pSku').value.trim(),
         product_name: document.getElementById('pName').value.trim(),
+        product_name_hi: document.getElementById('pNameHi').value.trim(),
         category: document.getElementById('pCategory').value,
         brand: document.getElementById('pBrand').value.trim(),
         description: document.getElementById('pDesc').value.trim(),
@@ -216,7 +221,7 @@ TE.Products = (function () {
       const list = el('div', { className: 'mb-16' });
       categories.forEach(c => {
         const row = el('div', { className: 'flex-between', style: { padding: '8px 0', borderBottom: '1px solid var(--border)' } }, [
-          el('span', {}, c.name),
+          el('span', {}, c.name + (c.name_hi ? ' (' + c.name_hi + ')' : '')),
           el('button', { className: 'btn btn-ghost btn-sm text-danger', onClick: async () => {
             categories = categories.filter(x => x.id !== c.id);
             await TE.Store.del('categories', c.id);
@@ -226,12 +231,14 @@ TE.Products = (function () {
         list.appendChild(row);
       });
       form.appendChild(list);
-      const addRow = el('div', { className: 'form-inline' }, [
-        el('input', { type: 'text', className: 'form-input', id: 'newCatName', placeholder: 'New category name' }),
+      const addRow = el('div', { className: 'form-inline', style: { gap: '6px', flexWrap: 'wrap' } }, [
+        el('input', { type: 'text', className: 'form-input', id: 'newCatName', placeholder: 'Category name (English)' }),
+        el('input', { type: 'text', className: 'form-input', id: 'newCatNameHi', placeholder: 'श्रेणी का नाम (Hindi)' }),
         el('button', { className: 'btn btn-primary', onClick: async () => {
           const name = document.getElementById('newCatName').value.trim();
+          const nameHi = document.getElementById('newCatNameHi').value.trim();
           if (!name) return;
-          const cat = { id: 'CAT' + String(categories.length + 1).padStart(3, '0'), name };
+          const cat = { id: 'CAT' + String(categories.length + 1).padStart(3, '0'), name, name_hi: nameHi };
           await TE.Store.put('categories', cat);
           categories.push(cat);
           renderList();

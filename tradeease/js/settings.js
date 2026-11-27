@@ -17,6 +17,11 @@ TE.Settings = (function () {
       { key: 'business_ifsc', label: 'IFSC Code', type: 'text' },
       { key: 'business_upi', label: 'UPI ID', type: 'text' },
       { key: 'invoice_title', label: 'Invoice Title (e.g. Quotation, Tax Invoice)', type: 'text' },
+      { key: 'print_language', label: 'Print Language (PDF)', type: 'select', options: [
+        { value: 'en', label: 'English' },
+        { value: 'hi', label: 'Hindi (हिंदी)' },
+        { value: 'both', label: 'Bilingual (Hindi + English)' },
+      ]},
       { key: 'invoice_prefix', label: 'Invoice Prefix', type: 'text' },
       { key: 'next_invoice_number', label: 'Next Invoice Number', type: 'number' },
     ];
@@ -33,6 +38,8 @@ TE.Settings = (function () {
       group.innerHTML = `<label class="form-label">${f.label}</label>`;
       if (f.type === 'textarea') {
         group.innerHTML += `<textarea class="form-input form-textarea" data-key="${f.key}" rows="2">${val || ''}</textarea>`;
+      } else if (f.type === 'select') {
+        group.innerHTML += `<select class="form-select" data-key="${f.key}">${f.options.map(o => `<option value="${o.value}" ${val === o.value ? 'selected' : ''}>${o.label}</option>`).join('')}</select>`;
       } else {
         group.innerHTML += `<input type="${f.type}" class="form-input" data-key="${f.key}" value="${val || ''}">`;
       }

@@ -132,9 +132,14 @@ TE.Lang = (function () {
       // Settings
       business_settings: 'Business Settings',
 
-      // Invoice Title
+      // Invoice Title & Print Language
       invoice_title: 'Invoice Title',
       invoice_title_hint: 'Appears as the heading on printed invoices (e.g. Quotation, Tax Invoice)',
+      print_language: 'Print Language',
+      print_language_hint: 'Language used in PDF invoices',
+      print_lang_en: 'English',
+      print_lang_hi: 'Hindi',
+      print_lang_both: 'Bilingual (Hindi + English)',
 
       // Payment Discount Master
       payment_discount_config: 'Payment Discount Configuration',
@@ -288,9 +293,14 @@ TE.Lang = (function () {
       // Settings
       business_settings: 'व्यवसाय सेटिंग्स',
 
-      // Invoice Title
+      // Invoice Title & Print Language
       invoice_title: 'बिल शीर्षक',
       invoice_title_hint: 'प्रिंटेड बिल पर शीर्षक के रूप में दिखाई देता है (जैसे कोटेशन, टैक्स इनवॉइस)',
+      print_language: 'प्रिंट भाषा',
+      print_language_hint: 'PDF बिल में प्रयुक्त भाषा',
+      print_lang_en: 'अंग्रेज़ी',
+      print_lang_hi: 'हिंदी',
+      print_lang_both: 'द्विभाषी (हिंदी + अंग्रेज़ी)',
 
       // Payment Discount Master
       payment_discount_config: 'भुगतान छूट कॉन्फ़िगरेशन',
