@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TradeEase - Business Infographic (Bilingual)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.6.0/tabler-icons.min.css">
+<style>
+  :root {
+    --accent: #2a78d6;
+    --accent-bg: #e6f1fb;
+    --accent-text: #0c447c;
+    --surface-0: #f5f5f4;
+    --surface-1: #fafaf9;
+    --surface-2: #ffffff;
+    --text-primary: #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted: #898781;
+    --border: rgba(11,11,11,0.10);
+    --border-strong: rgba(11,11,11,0.18);
+    --warning-bg: #faeeda;
+    --warning-text: #854f0b;
+    --purple: #534AB7;
+    --purple-light: #eeedfe;
+    --teal: #0F6E56;
+    --teal-light: #e1f5ee;
+    --radius: 8px;
+    --hi-color: #6b5b3a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --accent: #3987e5;
+      --accent-bg: #0c2d4f;
+      --accent-text: #85b7eb;
+      --surface-0: #111110;
+      --surface-1: #1a1a19;
+      --surface-2: #222221;
+      --text-primary: #f0efec;
+      --text-secondary: #c3c2b7;
+      --text-muted: #898781;
+      --border: rgba(255,255,255,0.10);
+      --border-strong: rgba(255,255,255,0.18);
+      --warning-bg: #412402;
+      --warning-text: #fac775;
+      --purple: #afa9ec;
+      --purple-light: #26215c;
+      --teal: #5dcaa5;
+      --teal-light: #04342c;
+      --hi-color: #c3c2b7;
+    }
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--surface-0);
+    color: var(--text-primary);
+    line-height: 1.5;
+    padding: 1.5rem;
+    display: flex;
+    justify-content: center;
+  }
+  .info-wrap { max-width: 760px; width: 100%; }
+
+  /* Hero */
+  .hero { text-align: center; margin-bottom: 1.5rem; padding: 1.5rem 1rem; background: var(--accent-bg); border-radius: 12px; }
+  .hero h1 { font-size: 24px; font-weight: 600; color: var(--accent-text); margin-bottom: 6px; }
+  .hero .sub-en { font-size: 15px; font-weight: 500; color: var(--accent-text); }
+  .hero .sub-hi { font-size: 13px; color: var(--hi-color); font-style: italic; margin-bottom: 8px; }
+  .hero .desc-en { font-size: 13px; color: var(--text-secondary); line-height: 1.6; max-width: 580px; margin: 0 auto; }
+  .hero .desc-hi { font-size: 11.5px; color: var(--hi-color); line-height: 1.5; max-width: 580px; margin: 4px auto 0; font-style: italic; }
+
+  /* Section */
+  .section { margin-bottom: 1.5rem; }
+  .section-title { font-size: 15px; font-weight: 500; color: var(--text-primary); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+  .section-title i { font-size: 18px; color: var(--accent); }
+  .section-title .hi { font-size: 12px; color: var(--hi-color); font-weight: 400; font-style: italic; }
+
+  /* Grid */
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  @media (max-width: 560px) { .grid-3 { grid-template-columns: repeat(2, 1fr); } }
+
+  /* Cards */
+  .card { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; }
+  .card-icon { font-size: 20px; margin-bottom: 3px; }
+  .card .en-title { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+  .card .hi-title { font-size: 11px; color: var(--hi-color); font-style: italic; }
+  .card .en-desc { font-size: 11px; color: var(--text-secondary); line-height: 1.35; margin-top: 3px; }
+  .card .hi-desc { font-size: 10px; color: var(--hi-color); line-height: 1.3; font-style: italic; margin-top: 1px; }
+  .feat-card .card-icon { color: var(--purple); }
+  .data-card .card-icon { color: var(--teal); }
+
+  /* Flow */
+  .flow-steps { display: flex; align-items: stretch; flex-wrap: wrap; gap: 6px; }
+  .step-box { background: var(--accent-bg); color: var(--accent-text); font-size: 12px; font-weight: 500; padding: 8px 10px; border-radius: var(--radius); display: flex; align-items: center; gap: 6px; }
+  .step-box .num { background: var(--accent); color: #fff; width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; }
+  .step-box .labels { display: flex; flex-direction: column; }
+  .step-box .en { font-size: 11.5px; white-space: nowrap; }
+  .step-box .hi { font-size: 10px; color: var(--hi-color); font-style: italic; font-weight: 400; white-space: nowrap; }
+  .flow-arrow { color: var(--text-muted); font-size: 16px; flex-shrink: 0; display: flex; align-items: center; }
+
+  /* Use cases */
+  .uc-list { display: flex; flex-direction: column; gap: 8px; }
+  .uc-card { background: var(--surface-1); border-radius: var(--radius); padding: 10px 14px; display: flex; align-items: flex-start; gap: 10px; }
+  .uc-num { background: var(--accent-bg); color: var(--accent-text); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; margin-top: 1px; }
+  .uc-card .en-title { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+  .uc-card .hi-title { font-size: 11px; color: var(--hi-color); font-style: italic; }
+  .uc-card .en-desc { font-size: 11.5px; color: var(--text-secondary); line-height: 1.35; margin-top: 2px; }
+  .uc-card .hi-desc { font-size: 10px; color: var(--hi-color); line-height: 1.3; font-style: italic; margin-top: 1px; }
+
+  /* Sync */
+  .sync-row { display: flex; gap: 10px; }
+  @media (max-width: 560px) { .sync-row { flex-direction: column; } }
+  .sync-box { flex: 1; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; text-align: center; }
+  .sync-box i.sync-icon { font-size: 22px; color: var(--accent); display: block; margin-bottom: 4px; }
+  .sync-box .en-title { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+  .sync-box .hi-title { font-size: 11px; color: var(--hi-color); font-style: italic; }
+  .sync-box .en-desc { font-size: 11.5px; color: var(--text-secondary); line-height: 1.35; margin-top: 3px; }
+  .sync-box .hi-desc { font-size: 10px; color: var(--hi-color); line-height: 1.3; font-style: italic; margin-top: 1px; }
+
+  /* Tech */
+  .tech-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+  .tech-pill { background: var(--surface-1); border: 1px solid var(--border); border-radius: 20px; padding: 5px 14px; font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 5px; }
+  .tech-pill i { font-size: 15px; color: var(--text-muted); }
+
+  /* Limits */
+  .limit-list { display: flex; flex-wrap: wrap; gap: 8px; }
+  .limit-pill { background: var(--warning-bg); color: var(--warning-text); font-size: 11px; padding: 6px 12px; border-radius: 20px; display: flex; flex-direction: column; gap: 1px; }
+  .limit-pill .hi { font-size: 10px; font-style: italic; opacity: 0.85; }
+
+  /* Footer */
+  .footer { text-align: center; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+  .footer p { font-size: 12px; color: var(--text-muted); }
+</style>
+</head>
+<body>
+<div class="info-wrap">
+
+  <!-- Hero -->
+  <div class="hero">
+    <h1><i class="ti ti-building-store" aria-hidden="true" style="font-size:24px;vertical-align:-3px;margin-right:4px"></i> TradeEase</h1>
+    <p class="sub-en">FMCG inventory & billing management</p>
+    <p class="sub-hi">FMCG इन्वेंटरी एवं बिलिंग प्रबंधन</p>
+    <p class="desc-en">A lightweight web application for small-to-medium FMCG trading businesses to manage product inventory, generate GST-compliant invoices, and sync data to Google Sheets as a cloud backup.</p>
+    <p class="desc-hi">छोटे-मध्यम FMCG व्यापार के लिए एक हल्का वेब एप्लिकेशन जो उत्पाद इन्वेंटरी प्रबंधन, GST-अनुरूप चालान निर्माण, और Google Sheets में डेटा सिंक की सुविधा प्रदान करता है।</p>
+  </div>
+
+  <!-- Features -->
+  <div class="section">
+    <div class="section-title"><i class="ti ti-star" aria-hidden="true"></i> Key features & modules <span class="hi">/ प्रमुख विशेषताएँ एवं मॉड्यूल</span></div>
+    <div class="grid-3">
+      <div class="card feat-card">
+        <div class="card-icon"><i class="ti ti-layout-dashboard" aria-hidden="true"></i></div>
+        <div class="en-title">Dashboard</div><div class="hi-title">डैशबोर्ड</div>
+        <div class="en-desc">Quick stats, low-stock alerts, recent sales</div>
+        <div class="hi-desc">त्वरित आँकड़े, कम स्टॉक अलर्ट, हालिया बिक्री</div>
+      </div>
+      <div class="card feat-card">
+        <div class="card-icon"><i class="ti ti-package" aria-hidden="true"></i></div>
+        <div class="en-title">Products</div><div class="hi-title">उत्पाद</div>
+        <div class="en-desc">Add, edit, categorize, track stock levels</div>
+        <div class="hi-desc">जोड़ें, संपादित करें, वर्गीकृत करें, स्टॉक ट्रैक करें</div>
+      </div>
+      <div class="card feat-card">
+        <div class="card-icon"><i class="ti ti-users" aria-hidden="true"></i></div>
+        <div class="en-title">Customers</div><div class="hi-title">ग्राहक</div>
+        <div class="en-desc">Manage customer directory with GST details</div>
+        <div class="hi-desc">GST विवरण सहित ग्राहक सूची प्रबंधन</div>
+      </div>
+      <div class="card feat-card">
+        <div class="card-icon"><i class="ti ti-receipt" aria-hidden="true"></i></div>
+        <div class="en-title">Billing</div><div class="hi-title">बिलिंग</div>
+        <div class="en-desc">Create invoices with auto tax calculation</div>
+        <div class="hi-desc">स्वचालित कर गणना के साथ चालान बनाएँ</div>
+      </div>
+      <div class="card feat-card">
+        <div class="card-icon"><i class="ti ti-file-invoice" aria-hidden="true"></i></div>
+        <div class="en-title">Invoices</div><div class="hi-title">चालान</div>
+        <div class="en-desc">View, search, download past invoices as PDF</div>
+        <div class="hi-desc">पिछले चालान देखें, खोजें, PDF डाउनलोड करें</div>
+      </div>
+      <div class="card feat-card">
+        <div class="card-icon"><i class="ti ti-report-analytics" aria-hidden="true"></i></div>
+        <div class="en-title">Reports</div><div class="hi-title">रिपोर्ट</div>
+        <div class="en-desc">Sales, stock, customer-wise reports</div>
+        <div class="hi-desc">बिक्री, स्टॉक, ग्राहक-वार रिपोर्ट</div>
+      </div>
+      <div class="card feat-card">
+        <div class="card-icon"><i class="ti ti-calculator" aria-hidden="true"></i></div>
+        <div class="en-title">GST tax engine</div><div class="hi-title">GST कर इंजन</div>
+        <div class="en-desc">CGST/SGST or IGST based on state</div>
+        <div class="hi-desc">राज्य के अनुसार CGST/SGST या IGST</div>
+      </div>
+      <div class="card feat-card">
+        <div class="card-icon"><i class="ti ti-file-download" aria-hidden="true"></i></div>
+        <div class="en-title">PDF export</div><div class="hi-title">PDF निर्यात</div>
+        <div class="en-desc">Generate & download invoices as PDF</div>
+        <div class="hi-desc">चालान PDF के रूप में बनाएँ व डाउनलोड करें</div>
+      </div>
+      <div class="card feat-card">
+        <div class="card-icon"><i class="ti ti-cloud-upload" aria-hidden="true"></i></div>
+        <div class="en-title">Cloud sync</div><div class="hi-title">क्लाउड सिंक</div>
+        <div class="en-desc">Push/pull data to Google Sheets</div>
+        <div class="hi-desc">Google Sheets में डेटा पुश/पुल करें</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data tables -->
+  <div class="section">
+    <div class="section-title"><i class="ti ti-database" aria-hidden="true"></i> Data tables (7) <span class="hi">/ डेटा तालिकाएँ (7)</span></div>
+    <div class="grid-3">
+      <div class="card data-card">
+        <div class="card-icon"><i class="ti ti-category" aria-hidden="true"></i></div>
+        <div class="en-title">Categories</div><div class="hi-title">श्रेणियाँ</div>
+        <div class="en-desc">Product classification groups</div>
+        <div class="hi-desc">उत्पाद वर्गीकरण समूह</div>
+      </div>
+      <div class="card data-card">
+        <div class="card-icon"><i class="ti ti-box" aria-hidden="true"></i></div>
+        <div class="en-title">Products</div><div class="hi-title">उत्पाद</div>
+        <div class="en-desc">Item master with pricing & stock</div>
+        <div class="hi-desc">मूल्य एवं स्टॉक सहित आइटम मास्टर</div>
+      </div>
+      <div class="card data-card">
+        <div class="card-icon"><i class="ti ti-user" aria-hidden="true"></i></div>
+        <div class="en-title">Customers</div><div class="hi-title">ग्राहक</div>
+        <div class="en-desc">Buyer details & GST info</div>
+        <div class="hi-desc">क्रेता विवरण एवं GST जानकारी</div>
+      </div>
+      <div class="card data-card">
+        <div class="card-icon"><i class="ti ti-file-text" aria-hidden="true"></i></div>
+        <div class="en-title">Sales header</div><div class="hi-title">बिक्री हेडर</div>
+        <div class="en-desc">Invoice-level totals & metadata</div>
+        <div class="hi-desc">चालान-स्तरीय कुल एवं मेटाडेटा</div>
+      </div>
+      <div class="card data-card">
+        <div class="card-icon"><i class="ti ti-list-details" aria-hidden="true"></i></div>
+        <div class="en-title">Sales details</div><div class="hi-title">बिक्री विवरण</div>
+        <div class="en-desc">Line items per invoice</div>
+        <div class="hi-desc">प्रति चालान लाइन आइटम</div>
+      </div>
+      <div class="card data-card">
+        <div class="card-icon"><i class="ti ti-history" aria-hidden="true"></i></div>
+        <div class="en-title">Stock ledger</div><div class="hi-title">स्टॉक खाता</div>
+        <div class="en-desc">Movement history (in/out/adjust)</div>
+        <div class="hi-desc">माल आवागमन इतिहास (इन/आउट/समायोजन)</div>
+      </div>
+      <div class="card data-card">
+        <div class="card-icon"><i class="ti ti-settings" aria-hidden="true"></i></div>
+        <div class="en-title">Settings</div><div class="hi-title">सेटिंग्स</div>
+        <div class="en-desc">Company profile & config</div>
+        <div class="hi-desc">कंपनी प्रोफ़ाइल एवं कॉन्फ़िगरेशन</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Process flow -->
+  <div class="section">
+    <div class="section-title"><i class="ti ti-arrows-right-left" aria-hidden="true"></i> Data process flow <span class="hi">/ डेटा प्रक्रिया प्रवाह</span></div>
+    <div class="flow-steps">
+      <div class="step-box"><span class="num">1</span><div class="labels"><span class="en">Setup master data</span><span class="hi">मास्टर डेटा सेटअप</span></div></div>
+      <span class="flow-arrow"><i class="ti ti-chevron-right" aria-hidden="true"></i></span>
+      <div class="step-box"><span class="num">2</span><div class="labels"><span class="en">Add products</span><span class="hi">उत्पाद जोड़ें</span></div></div>
+      <span class="flow-arrow"><i class="ti ti-chevron-right" aria-hidden="true"></i></span>
+      <div class="step-box"><span class="num">3</span><div class="labels"><span class="en">Register customers</span><span class="hi">ग्राहक पंजीकरण</span></div></div>
+      <span class="flow-arrow"><i class="ti ti-chevron-right" aria-hidden="true"></i></span>
+      <div class="step-box"><span class="num">4</span><div class="labels"><span class="en">Create invoice</span><span class="hi">चालान बनाएँ</span></div></div>
+      <span class="flow-arrow"><i class="ti ti-chevron-right" aria-hidden="true"></i></span>
+      <div class="step-box"><span class="num">5</span><div class="labels"><span class="en">Auto stock update</span><span class="hi">स्वचालित स्टॉक अपडेट</span></div></div>
+      <span class="flow-arrow"><i class="ti ti-chevron-right" aria-hidden="true"></i></span>
+      <div class="step-box"><span class="num">6</span><div class="labels"><span class="en">Sync to sheets</span><span class="hi">शीट्स में सिंक</span></div></div>
+    </div>
+  </div>
+
+  <!-- Use cases -->
+  <div class="section">
+    <div class="section-title"><i class="ti ti-bulb" aria-hidden="true"></i> Use cases <span class="hi">/ उपयोग के मामले</span></div>
+    <div class="uc-list">
+      <div class="uc-card"><div class="uc-num">1</div><div>
+        <div class="en-title">Quick invoicing</div><div class="hi-title">त्वरित बिलिंग</div>
+        <div class="en-desc">Generate GST-compliant bills in seconds with auto-calculated taxes</div>
+        <div class="hi-desc">स्वचालित कर गणना के साथ कुछ ही सेकंड में GST-अनुरूप बिल बनाएँ</div>
+      </div></div>
+      <div class="uc-card"><div class="uc-num">2</div><div>
+        <div class="en-title">Inventory tracking</div><div class="hi-title">इन्वेंटरी ट्रैकिंग</div>
+        <div class="en-desc">Real-time stock updates on every sale, with low-stock alerts on dashboard</div>
+        <div class="hi-desc">हर बिक्री पर रियल-टाइम स्टॉक अपडेट, डैशबोर्ड पर कम स्टॉक अलर्ट</div>
+      </div></div>
+      <div class="uc-card"><div class="uc-num">3</div><div>
+        <div class="en-title">Customer management</div><div class="hi-title">ग्राहक प्रबंधन</div>
+        <div class="en-desc">Maintain buyer directory with GSTIN for repeat billing</div>
+        <div class="hi-desc">बार-बार बिलिंग के लिए GSTIN सहित क्रेता सूची बनाए रखें</div>
+      </div></div>
+      <div class="uc-card"><div class="uc-num">4</div><div>
+        <div class="en-title">Sales reporting</div><div class="hi-title">बिक्री रिपोर्टिंग</div>
+        <div class="en-desc">Date-wise, product-wise, and customer inventory-wise sales reports</div>
+        <div class="hi-desc">तिथि-वार, उत्पाद-वार, और ग्राहक इन्वेंटरी-वार बिक्री रिपोर्ट</div>
+      </div></div>
+      <div class="uc-card"><div class="uc-num">5</div><div>
+        <div class="en-title">Cloud backup</div><div class="hi-title">क्लाउड बैकअप</div>
+        <div class="en-desc">Push all data to Google Sheets for safekeeping and audit trail</div>
+        <div class="hi-desc">सुरक्षित भंडारण और ऑडिट ट्रेल के लिए सारा डेटा Google Sheets में भेजें</div>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- Google Sheets sync -->
+  <div class="section">
+    <div class="section-title"><i class="ti ti-cloud" aria-hidden="true"></i> Google Sheets sync <span class="hi">/ Google Sheets सिंक</span></div>
+    <div class="sync-row">
+      <div class="sync-box">
+        <i class="ti ti-plug-connected sync-icon" aria-hidden="true"></i>
+        <div class="en-title">Test connection</div><div class="hi-title">कनेक्शन जाँच</div>
+        <div class="en-desc">Verify Apps Script endpoint is reachable</div>
+        <div class="hi-desc">Apps Script एंडपॉइंट उपलब्ध है या नहीं सत्यापित करें</div>
+      </div>
+      <div class="sync-box">
+        <i class="ti ti-upload sync-icon" aria-hidden="true"></i>
+        <div class="en-title">Push to sheets</div><div class="hi-title">शीट्स में भेजें</div>
+        <div class="en-desc">Send all local data to Google Sheets</div>
+        <div class="hi-desc">सभी स्थानीय डेटा Google Sheets में भेजें</div>
+      </div>
+      <div class="sync-box">
+        <i class="ti ti-download sync-icon" aria-hidden="true"></i>
+        <div class="en-title">Pull from sheets</div><div class="hi-title">शीट्स से लाएँ</div>
+        <div class="en-desc">Restore data from Google Sheets to browser</div>
+        <div class="hi-desc">Google Sheets से ब्राउज़र में डेटा पुनर्स्थापित करें</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tech -->
+  <div class="section">
+    <div class="section-title"><i class="ti ti-code" aria-hidden="true"></i> Technology <span class="hi">/ तकनीक</span></div>
+    <div class="tech-bar">
+      <span class="tech-pill"><i class="ti ti-brand-html5" aria-hidden="true"></i> HTML/CSS/JS</span>
+      <span class="tech-pill"><i class="ti ti-database" aria-hidden="true"></i> IndexedDB</span>
+      <span class="tech-pill"><i class="ti ti-table" aria-hidden="true"></i> Google Sheets</span>
+      <span class="tech-pill"><i class="ti ti-api" aria-hidden="true"></i> Apps Script API</span>
+      <span class="tech-pill"><i class="ti ti-brand-github" aria-hidden="true"></i> GitHub Pages</span>
+      <span class="tech-pill"><i class="ti ti-file-type-pdf" aria-hidden="true"></i> jsPDF</span>
+    </div>
+  </div>
+
+  <!-- Limitations -->
+  <div class="section">
+    <div class="section-title"><i class="ti ti-alert-triangle" aria-hidden="true"></i> Current limitations <span class="hi">/ वर्तमान सीमाएँ</span></div>
+    <div class="limit-list">
+      <div class="limit-pill"><span>Single-user (no multi-user auth)</span><span class="hi">एकल-उपयोगकर्ता (मल्टी-यूज़र नहीं)</span></div>
+      <div class="limit-pill"><span>Browser-local data (IndexedDB)</span><span class="hi">ब्राउज़र-स्थानीय डेटा (IndexedDB)</span></div>
+      <div class="limit-pill"><span>Manual sync required</span><span class="hi">मैन्युअल सिंक आवश्यक</span></div>
+      <div class="limit-pill"><span>No purchase/expense tracking</span><span class="hi">कोई खरीद/व्यय ट्रैकिंग नहीं</span></div>
+      <div class="limit-pill"><span>No multi-device real-time sync</span><span class="hi">मल्टी-डिवाइस रियल-टाइम सिंक नहीं</span></div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p>TradeEase v1.0 &middot; Auto Comply Solutions &middot; tradeease-billing.autocomplys.com</p>
+  </div>
+
+</div>
+</body>
+</html>
