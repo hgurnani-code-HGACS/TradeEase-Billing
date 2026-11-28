@@ -181,6 +181,8 @@ TE.Products = (function () {
     ]);
     const m = modal(isEdit ? 'Edit Product' : t('add_product'), form, { footer, wide: true });
 
+    TE.Translate.wireAutoTranslate('pName', 'pNameHi');
+
     async function saveProduct() {
       const data = {
         sku_code: document.getElementById('pSku').value.trim(),
@@ -237,7 +239,10 @@ TE.Products = (function () {
         el('input', { type: 'text', className: 'form-input', id: 'newCatNameHi', placeholder: 'श्रेणी का नाम (Hindi)' }),
         el('button', { className: 'btn btn-primary', onClick: async () => {
           const name = document.getElementById('newCatName').value.trim();
-          const nameHi = document.getElementById('newCatNameHi').value.trim();
+          let nameHi = document.getElementById('newCatNameHi').value.trim();
+          if (!nameHi && name) {
+            nameHi = await TE.Translate.toHindi(name);
+          }
           if (!name) return;
           const cat = { id: 'CAT' + String(categories.length + 1).padStart(3, '0'), name, name_hi: nameHi };
           await TE.Store.put('categories', cat);

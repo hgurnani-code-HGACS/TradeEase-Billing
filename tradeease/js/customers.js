@@ -158,6 +158,8 @@ TE.Customers = (function () {
     ]);
     const m = modal(isEdit ? 'Edit Customer' : t('add_customer'), form, { footer, wide: true });
 
+    TE.Translate.wireAutoTranslate('cName', 'cNameHi');
+
     const stateSelect = document.getElementById('cState');
     stateSelect.addEventListener('change', () => {
       const opt = stateSelect.selectedOptions[0];
