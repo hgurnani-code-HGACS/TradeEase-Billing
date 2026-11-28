@@ -149,6 +149,9 @@ TE.Sync = (function () {
         }
       }
 
+      if (onProgress) onProgress('translating', TABLES.length, TABLES.length);
+      await translateMissingHindi();
+
       await TE.Store.setSetting('last_sync_pull', new Date().toISOString());
       await TE.Store.setSetting('last_sync_type', 'pull');
 
@@ -181,6 +184,9 @@ TE.Sync = (function () {
       for (const row of result) {
         await TE.Store.put(tableName, coerceTypes(tableName, row));
       }
+    }
+    if (['products', 'customers', 'categories'].includes(tableName)) {
+      await translateMissingHindi();
     }
     return result;
   }
@@ -233,6 +239,26 @@ TE.Sync = (function () {
     const pullTime = await TE.Store.getSetting('last_sync_pull');
     const lastType = await TE.Store.getSetting('last_sync_type');
     return { pushTime, pullTime, lastType };
+  }
+
+  async function translateMissingHindi() {
+    const maps = [
+      { store: 'products', name: 'product_name', hi: 'product_name_hi' },
+      { store: 'customers', name: 'customer_name', hi: 'customer_name_hi' },
+      { store: 'categories', name: 'name', hi: 'name_hi' },
+    ];
+    for (const m of maps) {
+      const rows = await TE.Store.getAll(m.store);
+      for (const row of rows) {
+        if (row[m.name] && !row[m.hi]) {
+          const hindi = await TE.Translate.toHindi(row[m.name]);
+          if (hindi) {
+            row[m.hi] = hindi;
+            await TE.Store.put(m.store, row);
+          }
+        }
+      }
+    }
   }
 
   return { isConfigured, ping, pushAll, pullAll, pushTable, pullTable, isSyncing, getLastSyncInfo };
